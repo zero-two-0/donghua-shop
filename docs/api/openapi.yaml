@@ -1,0 +1,2042 @@
+# 状态：组员第 1~3 周草案（已归档，勿作为依据）。组长权威契约见 docs/leader/week3/openapi.yaml；
+# 整合结果见 docs/integration/contract-diff.md。
+
+openapi: 3.0.3
+info:
+  title: 东华大学在线点餐系统 API
+  version: 0.3.0-frozen-draft
+  description: |
+    用户端 H5 与商家管理 Web 共用的 REST 接口契约（第 3 周冻结稿，状态：待双方评审签字）。
+
+    ## 通用约定
+    - 基础路径：`/api`，例如 `GET /api/dishes`。前端 Vite 已将 `/api` 代理到 `http://127.0.0.1:8080`。
+    - 请求与响应均为 `application/json; charset=utf-8`。
+    - 统一响应外壳：`{ "code": 0, "message": "ok", "data": ... }`；成功时 `code = 0`，失败时 `data = null`。
+    - 业务失败同时返回语义化 HTTP 状态码（400/401/403/404/409/500），前端拦截器对两者都做处理。
+    - 鉴权：除两个登录接口外，`/api/user/**` 与 `/api/admin/**` 均需 `Authorization: Bearer <token>`；
+      用户令牌与员工令牌不互通，用户令牌调用管理端接口返回 403。
+    - 分页：请求参数 `page`（从 1 开始，默认 1）、`pageSize`（默认 10，最大 50）；
+      响应 `data` 为 `{ page, pageSize, total, records }`。
+    - 金额：字符串，保留两位小数，单位为元，例如 `"18.00"`；禁止用浮点数传输以免精度丢失。
+    - 时间：字符串，格式 `yyyy-MM-dd HH:mm:ss`，时区固定东八区。
+    - 状态枚举：菜品/套餐 `status` 1 起售、0 停售；订单 `status` 1 待付款、2 待接单、3 已接单、4 派送中、5 已完成、6 已取消；
+      订单 `payStatus` 0 未支付、1 已支付、2 已退款。
+    - 业务错误码：
+      | code | 含义 |
+      | --- | --- |
+      | 40001 | 参数校验失败 |
+      | 40101 | 未登录或令牌失效 |
+      | 40102 | 验证码错误 |
+      | 40103 | 用户名或密码错误 |
+      | 40301 | 无访问权限（越权访问他人资源） |
+      | 40302 | 账号已禁用 |
+      | 40401 | 资源不存在 |
+      | 40400 | 接口不存在 |
+      | 40901 | 商品已停售 |
+      | 40902 | 默认地址不可直接删除 |
+      | 40903 | 购物车为空，无法下单 |
+      | 40904 | 订单已支付，重复提交 |
+      | 40905 | 订单已取消，无法支付 |
+      | 40906 | 分类名称重复 |
+      | 40907 | 分类下仍有商品，无法删除 |
+      | 40908 | 商品被套餐引用，无法删除 |
+      | 40909 | 订单状态迁移非法 |
+      | 50000 | 服务器内部错误 |
+    - 课程范围说明：用户登录使用“手机号 + 固定验证码 1234”模拟流程；支付只变更本地订单状态，
+      不接入真实短信、支付与微信小程序能力。
+servers:
+  - url: http://127.0.0.1:8080/api
+    description: 本机联调
+  - url: /api
+    description: 前端同域代理
+tags:
+  - name: 用户端-认证
+    description: 用户登录与个人概要
+  - name: 用户端-菜单
+    description: 分类、菜品与套餐浏览
+  - name: 用户端-购物车
+    description: 购物车增删改查
+  - name: 用户端-地址
+    description: 收货地址维护
+  - name: 用户端-订单
+    description: 下单、模拟支付与查单
+  - name: 管理端-认证
+    description: 员工登录
+  - name: 管理端-商品
+    description: 分类、菜品、套餐管理
+  - name: 管理端-订单
+    description: 订单处理
+  - name: 管理端-统计
+    description: 营业概览
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ============================ 用户端 ============================
+  /user/auth/login:
+    post:
+      tags: [用户端-认证]
+      summary: 用户登录（模拟验证码）
+      description: 课程内不接入短信服务，验证码固定为 `1234`；首次登录按手机号自动注册。
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+            example:
+              phone: '13800001111'
+              code: '1234'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserLoginResult'
+              example:
+                code: 0
+                message: ok
+                data:
+                  token: eyJhbGciOiJIUzI1NiJ9.mock
+                  expiresIn: 7200
+                  user:
+                    id: 1
+                    name: 测试同学
+                    phone: '13800001111'
+                    avatar: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: 验证码错误（40102）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/profile:
+    get:
+      tags: [用户端-认证]
+      summary: 个人中心概要
+      responses:
+        '200':
+          description: 用户概要
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /categories:
+    get:
+      tags: [用户端-菜单]
+      summary: 查询分类列表
+      security: []
+      parameters:
+        - name: type
+          in: query
+          description: 1 菜品分类，2 套餐分类；不传返回全部
+          schema:
+            type: integer
+            enum: [1, 2]
+      responses:
+        '200':
+          description: 分类列表（按 sort 升序）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Category'
+
+  /dishes:
+    get:
+      tags: [用户端-菜单]
+      summary: 分页查询在售菜品
+      description: 仅返回 `status = 1` 的在售菜品；`keyword` 与 `categoryId` 同时传入时以 `keyword` 优先。
+      security: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: keyword
+          in: query
+          description: 菜品名称模糊匹配，最长 32 字
+          schema: { type: string, maxLength: 32 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 菜品分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Dish'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /dishes/{dishId}:
+    get:
+      tags: [用户端-菜单]
+      summary: 菜品详情（含口味选项）
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/DishId'
+      responses:
+        '200':
+          description: 菜品详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DishDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /setmeals:
+    get:
+      tags: [用户端-菜单]
+      summary: 分页查询在售套餐
+      security: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema: { type: integer, format: int64 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 套餐分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Setmeal'
+
+  /user/cart:
+    get:
+      tags: [用户端-购物车]
+      summary: 查询当前用户购物车
+      responses:
+        '200':
+          description: 购物车条目（按加入时间升序）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CartItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [用户端-购物车]
+      summary: 清空当前用户购物车
+      responses:
+        '200':
+          description: 已清空
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/cart/items:
+    post:
+      tags: [用户端-购物车]
+      summary: 加入购物车
+      description: |
+        同一商品（dishId 或 setmealId）且口味相同则累加数量；数量上限 99。
+        `dishId` 与 `setmealId` 必须且只能传一个；停售商品返回 40901。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartAddRequest'
+            example:
+              dishId: 4
+              number: 2
+              dishFlavor: '辣度:微辣'
+      responses:
+        '200':
+          description: 加入后的购物车条目
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 商品已停售（40901）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/cart/items/{itemId}:
+    patch:
+      tags: [用户端-购物车]
+      summary: 修改购物车条目数量
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartUpdateRequest'
+      responses:
+        '200':
+          description: 修改后的条目
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 条目不属于当前用户（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [用户端-购物车]
+      summary: 删除购物车条目
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 条目不属于当前用户（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/addresses:
+    get:
+      tags: [用户端-地址]
+      summary: 查询当前用户收货地址
+      responses:
+        '200':
+          description: 地址列表（默认地址排最前）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Address'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [用户端-地址]
+      summary: 新增收货地址
+      description: 用户第一条地址自动设为默认；`isDefault = 1` 时后端需保证同一用户至多一条默认地址。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressUpsert'
+      responses:
+        '200':
+          description: 新增的地址
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/addresses/{addressId}:
+    put:
+      tags: [用户端-地址]
+      summary: 修改收货地址
+      parameters:
+        - $ref: '#/components/parameters/AddressId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressUpsert'
+      responses:
+        '200':
+          description: 修改后的地址
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Address'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 越权访问他人地址（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [用户端-地址]
+      summary: 删除收货地址
+      description: 默认地址且用户仍有其他地址时拒绝删除，返回 40902；无地址时允许删除。
+      parameters:
+        - $ref: '#/components/parameters/AddressId'
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 越权访问他人地址（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 默认地址不可直接删除（40902）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user/orders:
+    post:
+      tags: [用户端-订单]
+      summary: 提交订单（未支付）
+      description: |
+        后端校验收货地址归属、购物车非空与商品在售状态，**金额一律由后端计算**，
+        前端传任何金额都不采信。下单成功后订单状态为 1（待付款），购物车清空。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderSubmitRequest'
+            example:
+              addressBookId: 1
+              remark: '不要香菜'
+      responses:
+        '200':
+          description: 下单成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderSubmitResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 购物车为空（40903）或商品已停售（40901）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags: [用户端-订单]
+      summary: 分页查询当前用户订单
+      parameters:
+        - name: status
+          in: query
+          description: 订单状态筛选，不传为全部
+          schema:
+            type: integer
+            enum: [1, 2, 3, 4, 5, 6]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 订单分页结果（按下单时间倒序）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/OrderSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/orders/{orderId}:
+    get:
+      tags: [用户端-订单]
+      summary: 查询订单详情
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: 订单详情（含明细）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 只能查看本人订单（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /user/orders/{orderId}/mock-payment:
+    post:
+      tags: [用户端-订单]
+      summary: 模拟支付（课程内不接入真实支付）
+      description: |
+        幂等要求：已支付订单再次调用返回 40904；已取消订单返回 40905。
+        支付成功后订单状态由 1 变为 2（待接单），并记录 `checkoutTime`。
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: 支付成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MockPaymentResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 只能支付本人订单（40301）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 重复支付（40904）或订单已取消（40905）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================ 管理端 ============================
+  /admin/auth/login:
+    post:
+      tags: [管理端-认证]
+      summary: 员工登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeLoginRequest'
+            example:
+              username: admin
+              password: '123456'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeLoginResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: 用户名或密码错误（40103）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 账号已禁用（40302）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/auth/me:
+    get:
+      tags: [管理端-认证]
+      summary: 当前登录员工信息
+      responses:
+        '200':
+          description: 员工信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmployeeBrief'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/categories:
+    get:
+      tags: [管理端-商品]
+      summary: 分页查询分类
+      parameters:
+        - name: type
+          in: query
+          schema: { type: integer, enum: [1, 2] }
+        - name: name
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 分类分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [管理端-商品]
+      summary: 新增分类
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpsert'
+      responses:
+        '200':
+          description: 新增的分类
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 同类型下分类名称重复（40906）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/categories/{categoryId}:
+    put:
+      tags: [管理端-商品]
+      summary: 修改分类
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpsert'
+      responses:
+        '200':
+          description: 修改后的分类
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 分类名称重复（40906）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [管理端-商品]
+      summary: 删除分类
+      description: 分类下仍有菜品或套餐时拒绝删除，返回 40907。
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 分类下仍有商品（40907）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/dishes:
+    get:
+      tags: [管理端-商品]
+      summary: 分页查询菜品（含停售）
+      parameters:
+        - name: name
+          in: query
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 菜品分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Dish'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [管理端-商品]
+      summary: 新增菜品
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishUpsert'
+      responses:
+        '200':
+          description: 新增的菜品
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Dish'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/dishes/{dishId}:
+    get:
+      tags: [管理端-商品]
+      summary: 菜品详情（含口味）
+      parameters:
+        - $ref: '#/components/parameters/DishId'
+      responses:
+        '200':
+          description: 菜品详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DishDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [管理端-商品]
+      summary: 修改菜品
+      parameters:
+        - $ref: '#/components/parameters/DishId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishUpsert'
+      responses:
+        '200':
+          description: 修改后的菜品
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Dish'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [管理端-商品]
+      summary: 删除菜品
+      parameters:
+        - $ref: '#/components/parameters/DishId'
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 菜品被套餐引用（40908）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/dishes/{dishId}/status:
+    patch:
+      tags: [管理端-商品]
+      summary: 菜品起售/停售
+      description: 停售不影响历史订单快照；用户端查询立即不再返回该菜品。
+      parameters:
+        - $ref: '#/components/parameters/DishId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusPatch'
+      responses:
+        '200':
+          description: 变更后的菜品
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Dish'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/setmeals:
+    get:
+      tags: [管理端-商品]
+      summary: 分页查询套餐
+      parameters:
+        - name: name
+          in: query
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 套餐分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Setmeal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [管理端-商品]
+      summary: 新增套餐
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetmealUpsert'
+      responses:
+        '200':
+          description: 新增的套餐
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Setmeal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/setmeals/{setmealId}:
+    get:
+      tags: [管理端-商品]
+      summary: 套餐详情（含包含菜品）
+      parameters:
+        - $ref: '#/components/parameters/SetmealId'
+      responses:
+        '200':
+          description: 套餐详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Setmeal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [管理端-商品]
+      summary: 修改套餐
+      parameters:
+        - $ref: '#/components/parameters/SetmealId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetmealUpsert'
+      responses:
+        '200':
+          description: 修改后的套餐
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Setmeal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [管理端-商品]
+      summary: 删除套餐
+      parameters:
+        - $ref: '#/components/parameters/SetmealId'
+      responses:
+        '200':
+          description: 已删除
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/setmeals/{setmealId}/status:
+    patch:
+      tags: [管理端-商品]
+      summary: 套餐起售/停售
+      parameters:
+        - $ref: '#/components/parameters/SetmealId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusPatch'
+      responses:
+        '200':
+          description: 变更后的套餐
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Setmeal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/orders:
+    get:
+      tags: [管理端-订单]
+      summary: 分页查询订单
+      parameters:
+        - name: number
+          in: query
+          description: 订单号，支持部分匹配
+          schema: { type: string }
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [1, 2, 3, 4, 5, 6]
+        - name: beginTime
+          in: query
+          description: 下单时间范围起点，yyyy-MM-dd HH:mm:ss
+          schema: { type: string }
+        - name: endTime
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 订单分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/PageResult'
+                          - type: object
+                            properties:
+                              records:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/OrderSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/orders/{orderId}:
+    get:
+      tags: [管理端-订单]
+      summary: 订单详情
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: 订单详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/orders/{orderId}/status:
+    patch:
+      tags: [管理端-订单]
+      summary: 变更订单状态（接单/派送/完成/取消）
+      description: |
+        合法迁移：2→3 接单、3→4 派送、4→5 完成、2→6 拒单、1→6 取消。
+        其他迁移返回 40909；迁移到 6 必须填写 `reason`。
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusPatch'
+            example:
+              status: 3
+      responses:
+        '200':
+          description: 变更后的订单状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/OrderStatusResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 状态迁移非法（40909）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/reports/overview:
+    get:
+      tags: [管理端-统计]
+      summary: 营业数据概览
+      description: 营业额只统计已支付且未取消订单；口径变更需同步更新本文档与前端展示说明。
+      responses:
+        '200':
+          description: 概览数据
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReportOverview'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: '登录接口返回的令牌，后续请求放入 Authorization: Bearer <token> 请求头。'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 页码，从 1 开始
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      description: 每页条数，最大 50
+      schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+    DishId:
+      name: dishId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    SetmealId:
+      name: setmealId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    AddressId:
+      name: addressId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    BadRequest:
+      description: 参数校验失败（40001）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 40001
+            message: 参数校验失败
+            data: null
+            errors:
+              - field: phone
+                message: 手机号格式不正确
+    Unauthorized:
+      description: 未登录或令牌失效（40101）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 40101
+            message: 登录已过期，请重新登录
+            data: null
+    NotFound:
+      description: 资源不存在（40401）
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 40401
+            message: 资源不存在
+            data: null
+
+  schemas:
+    ApiOk:
+      type: object
+      description: 成功响应外壳
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          enum: [0]
+          example: 0
+        message:
+          type: string
+          example: ok
+        data:
+          nullable: true
+          description: 业务数据，具体结构见各接口
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 40001
+        message:
+          type: string
+          example: 参数校验失败
+        data:
+          nullable: true
+          example: null
+        errors:
+          type: array
+          description: 仅在参数校验失败时返回
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    PageResult:
+      type: object
+      required: [page, pageSize, total, records]
+      properties:
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 17
+        records:
+          type: array
+          items: {}
+
+    UserLoginRequest:
+      type: object
+      required: [phone, code]
+      properties:
+        phone:
+          type: string
+          pattern: '^1\d{10}$'
+          example: '13800001111'
+        code:
+          type: string
+          description: 课程固定验证码 1234
+          example: '1234'
+
+    UserLoginResult:
+      type: object
+      required: [token, expiresIn, user]
+      properties:
+        token:
+          type: string
+        expiresIn:
+          type: integer
+          description: 令牌有效期（秒）
+          example: 7200
+        user:
+          $ref: '#/components/schemas/UserBrief'
+
+    UserBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/UserBrief'
+        - type: object
+          properties:
+            addressCount:
+              type: integer
+            orderCount:
+              type: integer
+
+    EmployeeLoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          maxLength: 32
+        password:
+          type: string
+          maxLength: 32
+
+    EmployeeLoginResult:
+      type: object
+      required: [token, expiresIn, employee]
+      properties:
+        token:
+          type: string
+        expiresIn:
+          type: integer
+          example: 7200
+        employee:
+          $ref: '#/components/schemas/EmployeeBrief'
+
+    EmployeeBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        username:
+          type: string
+        phone:
+          type: string
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: integer
+          enum: [1, 2]
+          description: 1 菜品分类，2 套餐分类
+        name:
+          type: string
+        sort:
+          type: integer
+        status:
+          type: integer
+          enum: [0, 1]
+
+    CategoryUpsert:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          maxLength: 16
+        type:
+          type: integer
+          enum: [1, 2]
+        sort:
+          type: integer
+          minimum: 0
+          default: 0
+
+    FlavorGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 口味名，如 辣度
+        values:
+          type: array
+          items:
+            type: string
+
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+          description: 列表展示用，后端联表返回
+        price:
+          type: string
+          example: '18.00'
+        image:
+          type: string
+          nullable: true
+          description: 图片 URL；为空时前端显示占位图
+        description:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          enum: [0, 1]
+          description: 1 起售，0 停售
+        updateTime:
+          type: string
+          nullable: true
+
+    DishDetail:
+      allOf:
+        - $ref: '#/components/schemas/Dish'
+        - type: object
+          properties:
+            flavors:
+              type: array
+              items:
+                $ref: '#/components/schemas/FlavorGroup'
+
+    DishUpsert:
+      type: object
+      required: [name, categoryId, price]
+      properties:
+        name:
+          type: string
+          maxLength: 40
+        categoryId:
+          type: integer
+          format: int64
+        price:
+          type: string
+          pattern: '^\d{1,7}(\.\d{1,2})?$'
+          example: '18.00'
+        image:
+          type: string
+        description:
+          type: string
+          maxLength: 120
+        status:
+          type: integer
+          enum: [0, 1]
+          default: 1
+
+    SetmealDishItem:
+      type: object
+      properties:
+        dishId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        price:
+          type: string
+        copies:
+          type: integer
+          minimum: 1
+
+    Setmeal:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+        price:
+          type: string
+          example: '22.00'
+        image:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          enum: [0, 1]
+        dishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetmealDishItem'
+
+    SetmealUpsert:
+      type: object
+      required: [name, categoryId, price]
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: integer
+          format: int64
+        price:
+          type: string
+        image:
+          type: string
+        description:
+          type: string
+        status:
+          type: integer
+          enum: [0, 1]
+          default: 1
+        dishes:
+          type: array
+          description: 套餐内菜品组合，至少一项
+          items:
+            $ref: '#/components/schemas/SetmealDishItem'
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        image:
+          type: string
+          nullable: true
+        dishId:
+          type: integer
+          format: int64
+          nullable: true
+        setmealId:
+          type: integer
+          format: int64
+          nullable: true
+        dishFlavor:
+          type: string
+          nullable: true
+        number:
+          type: integer
+          minimum: 1
+          maximum: 99
+        amount:
+          type: string
+          description: 该行小计，后端计算
+          example: '36.00'
+
+    CartAddRequest:
+      type: object
+      required: [number]
+      properties:
+        dishId:
+          type: integer
+          format: int64
+          nullable: true
+        setmealId:
+          type: integer
+          format: int64
+          nullable: true
+        dishFlavor:
+          type: string
+          nullable: true
+          example: '辣度:微辣'
+        number:
+          type: integer
+          minimum: 1
+          maximum: 99
+          default: 1
+
+    CartUpdateRequest:
+      type: object
+      required: [number]
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 99
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        consignee:
+          type: string
+        sex:
+          type: string
+          nullable: true
+          enum: ['1', '2']
+        phone:
+          type: string
+        provinceCode:
+          type: string
+          nullable: true
+        provinceName:
+          type: string
+          nullable: true
+        cityCode:
+          type: string
+          nullable: true
+        cityName:
+          type: string
+          nullable: true
+        districtCode:
+          type: string
+          nullable: true
+        districtName:
+          type: string
+          nullable: true
+        detail:
+          type: string
+        label:
+          type: string
+          nullable: true
+        isDefault:
+          type: integer
+          enum: [0, 1]
+
+    AddressUpsert:
+      type: object
+      required: [consignee, phone, detail]
+      properties:
+        consignee:
+          type: string
+          maxLength: 50
+        sex:
+          type: string
+          enum: ['1', '2']
+        phone:
+          type: string
+          pattern: '^1\d{10}$'
+        provinceCode: { type: string }
+        provinceName: { type: string }
+        cityCode: { type: string }
+        cityName: { type: string }
+        districtCode: { type: string }
+        districtName: { type: string }
+        detail:
+          type: string
+          maxLength: 200
+        label:
+          type: string
+          maxLength: 10
+        isDefault:
+          type: integer
+          enum: [0, 1]
+          default: 0
+
+    OrderSubmitRequest:
+      type: object
+      required: [addressBookId]
+      properties:
+        addressBookId:
+          type: integer
+          format: int64
+        remark:
+          type: string
+          maxLength: 100
+        tablewareNumber:
+          type: integer
+          minimum: 0
+          nullable: true
+        deliveryStatus:
+          type: integer
+          enum: [0, 1]
+          default: 1
+          description: 1 立即送出，0 选择时间
+        expectedDeliveryTime:
+          type: string
+          nullable: true
+
+    OrderSubmitResult:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          format: int64
+        number:
+          type: string
+          example: '202610260005'
+        amount:
+          type: string
+          example: '56.00'
+        status:
+          type: integer
+          example: 1
+
+    MockPaymentResult:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          format: int64
+        number:
+          type: string
+        status:
+          type: integer
+          example: 2
+        payStatus:
+          type: integer
+          example: 1
+        checkoutTime:
+          type: string
+          example: '2026-10-26 18:06:10'
+
+    OrderItem:
+      type: object
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+          nullable: true
+        dishId:
+          type: integer
+          format: int64
+          nullable: true
+        setmealId:
+          type: integer
+          format: int64
+          nullable: true
+        dishFlavor:
+          type: string
+          nullable: true
+        number:
+          type: integer
+        amount:
+          type: string
+
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        number:
+          type: string
+        status:
+          type: integer
+          enum: [1, 2, 3, 4, 5, 6]
+        statusText:
+          type: string
+          example: 待接单
+        amount:
+          type: string
+        payStatus:
+          type: integer
+          enum: [0, 1, 2]
+        payMethod:
+          type: integer
+          enum: [1, 2]
+        orderTime:
+          type: string
+        checkoutTime:
+          type: string
+          nullable: true
+        consignee:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        remark:
+          type: string
+          nullable: true
+        itemCount:
+          type: integer
+          description: 商品总件数，供列表展示
+
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/OrderSummary'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderItem'
+            cancelReason:
+              type: string
+              nullable: true
+            rejectionReason:
+              type: string
+              nullable: true
+            estimatedDeliveryTime:
+              type: string
+              nullable: true
+            deliveryTime:
+              type: string
+              nullable: true
+
+    OrderStatusPatch:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: integer
+          enum: [3, 4, 5, 6]
+        reason:
+          type: string
+          maxLength: 100
+          description: 迁移到 6（取消）时必填
+
+    OrderStatusResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        number:
+          type: string
+        status:
+          type: integer
+        statusText:
+          type: string
+
+    StatusPatch:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: integer
+          enum: [0, 1]
+
+    StatusCount:
+      type: object
+      properties:
+        status:
+          type: integer
+        statusText:
+          type: string
+        count:
+          type: integer
+
+    ReportOverview:
+      type: object
+      properties:
+        todayOrderCount:
+          type: integer
+        todayTurnover:
+          type: string
+        todayValidOrderCount:
+          type: integer
+        totalOrderCount:
+          type: integer
+        totalTurnover:
+          type: string
+        statusDistribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusCount'

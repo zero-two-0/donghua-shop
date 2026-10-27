@@ -1,0 +1,28 @@
+# 便携工具链与依赖缓存（可由 setup-env.ps1 重建，不入库）
+code/tools/
+**/pnpm-store/
+tools/jdk17/
+tools/apache-maven-3.9.9/
+tools/pnpm/
+tools/pnpm-store/
+tools/npm-cache/
+tools/m2-repository/
+tools/yaml/node_modules/
+tools/dist/
+
+# 本地私密配置（含数据库口令）
+config/env.local.ps1
+
+# 构建产物与临时文件
+target/
+code/backend/**/target/
+node_modules/
+dist/
+.tmp/
+*.log
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

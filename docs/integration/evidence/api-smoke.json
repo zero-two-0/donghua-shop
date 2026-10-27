@@ -1,0 +1,341 @@
+{
+  "baseUrl": "http://127.0.0.1:8080",
+  "startedAt": "2026-10-27T04:12:08.271Z",
+  "steps": [
+    {
+      "group": "认证",
+      "name": "POST /user/user/test-login",
+      "ok": true,
+      "detail": {
+        "http": 200,
+        "code": 1,
+        "userId": 1
+      }
+    },
+    {
+      "group": "认证",
+      "name": "非法 loginCode 被拒绝",
+      "ok": true,
+      "detail": {
+        "http": 200,
+        "msg": "仅允许课程演示账号"
+      }
+    },
+    {
+      "group": "认证",
+      "name": "无令牌访问购物车返回 401",
+      "ok": true,
+      "detail": {
+        "http": 401
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/category/list?type=1",
+      "ok": true,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/shop/status",
+      "ok": true,
+      "detail": {
+        "status": 1
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/dish/list",
+      "ok": true,
+      "detail": {
+        "count": 2,
+        "first": "宫保鸡丁",
+        "hasFlavors": true
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/dish/list?keyword=宫保",
+      "ok": true,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/setmeal/list",
+      "ok": true,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "group": "浏览",
+      "name": "GET /user/setmeal/dish/{id}",
+      "ok": true,
+      "detail": {
+        "items": [
+          "宫保鸡丁x1",
+          "番茄炒蛋x1"
+        ]
+      }
+    },
+    {
+      "group": "购物车",
+      "name": "POST /user/shoppingCart/add",
+      "ok": true
+    },
+    {
+      "group": "购物车",
+      "name": "GET /user/shoppingCart/list",
+      "ok": true,
+      "detail": {
+        "count": 1,
+        "number": 1,
+        "amount": 18
+      }
+    },
+    {
+      "group": "购物车",
+      "name": "PUT /user/shoppingCart/{id}?number=2",
+      "ok": true
+    },
+    {
+      "group": "购物车",
+      "name": "改数量后 number=2，且 单价×数量 = 期望小计",
+      "ok": true,
+      "detail": {
+        "number": 2,
+        "unitPrice": 18,
+        "subtotal": 36,
+        "expect": 36
+      }
+    },
+    {
+      "group": "地址",
+      "name": "POST /user/addressBook",
+      "ok": true,
+      "detail": {
+        "http": 200,
+        "code": 1,
+        "msg": null
+      }
+    },
+    {
+      "group": "地址",
+      "name": "GET /user/addressBook/list",
+      "ok": true,
+      "detail": {
+        "count": 7
+      }
+    },
+    {
+      "group": "地址",
+      "name": "PUT /user/addressBook/default",
+      "ok": true,
+      "detail": {
+        "id": 3
+      }
+    },
+    {
+      "group": "订单",
+      "name": "POST /user/order/submit（客户端金额 0.01 不予采信）",
+      "ok": true,
+      "detail": {
+        "orderId": 6,
+        "orderNumber": "705b75ef63824fa5b285c3b23a27042e",
+        "orderAmount": 36
+      }
+    },
+    {
+      "group": "订单",
+      "name": "后端重算金额 ≠ 客户端金额",
+      "ok": true,
+      "detail": {
+        "backend": 36,
+        "client": 0.01,
+        "expect": 36
+      }
+    },
+    {
+      "group": "订单",
+      "name": "下单后购物车已清空",
+      "ok": true,
+      "detail": {
+        "count": 0
+      }
+    },
+    {
+      "group": "订单",
+      "name": "PUT /user/order/payment（模拟支付）",
+      "ok": true,
+      "detail": {
+        "packageStr": "SIMULATED:705b75ef63824fa5b285c3b23a27042e"
+      }
+    },
+    {
+      "group": "订单",
+      "name": "重复支付按设计幂等（同一 paymentVO，无二次变更）",
+      "ok": true,
+      "detail": {
+        "http": 200,
+        "code": 1,
+        "packageStr": "SIMULATED:705b75ef63824fa5b285c3b23a27042e"
+      }
+    },
+    {
+      "group": "订单",
+      "name": "GET /user/order/historyOrders",
+      "ok": true,
+      "detail": {
+        "total": 6,
+        "records": 5
+      }
+    },
+    {
+      "group": "订单",
+      "name": "支付后订单状态为 2（待接单）",
+      "ok": true,
+      "detail": {
+        "status": 2,
+        "payStatus": 1
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "POST /admin/employee/login",
+      "ok": true,
+      "detail": {
+        "http": 200,
+        "code": 1,
+        "name": "课程管理员"
+      }
+    },
+    {
+      "group": "鉴权",
+      "name": "用户令牌访问管理端被拒绝",
+      "ok": true,
+      "detail": {
+        "http": 401,
+        "code": 0
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "GET /admin/order/conditionSearch 查到刚下的订单",
+      "ok": true,
+      "detail": {
+        "total": 6,
+        "status": 2
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "PUT /admin/order/confirm（接单）",
+      "ok": true,
+      "detail": {
+        "code": 1,
+        "msg": null
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "PUT /admin/order/delivery/{id}（派送）",
+      "ok": true,
+      "detail": {
+        "code": 1,
+        "msg": null
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "PUT /admin/order/complete/{id}（完成）",
+      "ok": true,
+      "detail": {
+        "code": 1,
+        "msg": null
+      }
+    },
+    {
+      "group": "闭环",
+      "name": "用户复查订单状态为 5（已完成）",
+      "ok": true,
+      "detail": {
+        "status": 5,
+        "deliveryTime": "2026-10-27 12:12:09"
+      }
+    },
+    {
+      "group": "统计",
+      "name": "GET /admin/workspace/businessData",
+      "ok": true,
+      "detail": {
+        "turnover": 180,
+        "validOrderCount": 5,
+        "orderCompletionRate": 0.8333,
+        "unitPrice": 36,
+        "newUsers": 2
+      }
+    },
+    {
+      "group": "统计",
+      "name": "GET /admin/report/turnoverStatistics",
+      "ok": true,
+      "detail": {
+        "dateList": "2026-10-27",
+        "turnoverList": "180.00"
+      }
+    },
+    {
+      "group": "统计",
+      "name": "GET /admin/order/statistics",
+      "ok": true,
+      "detail": {
+        "toBeConfirmed": 1,
+        "confirmed": 0,
+        "deliveryInProgress": 0
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "GET /admin/dish/page",
+      "ok": true,
+      "detail": {
+        "total": 2
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "GET /admin/dish/{id}（含口味）",
+      "ok": true,
+      "detail": {
+        "name": "宫保鸡丁",
+        "flavors": 1
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "PUT /admin/shop/0 后用户端状态变为 0",
+      "ok": true,
+      "detail": {
+        "shopStatus": 0
+      }
+    },
+    {
+      "group": "管理端",
+      "name": "PUT /admin/shop/1 恢复营业",
+      "ok": true,
+      "detail": {
+        "shopStatus": 1
+      }
+    }
+  ],
+  "finishedAt": "2026-10-27T04:12:08.582Z",
+  "summary": {
+    "total": 37,
+    "pass": 37,
+    "fail": 0
+  }
+}

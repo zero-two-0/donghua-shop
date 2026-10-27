@@ -1,0 +1,8 @@
+packages:
+  - 'user-h5'
+  - 'admin-web'
+
+# 明确允许运行的依赖构建脚本（pnpm 10 默认忽略），否则 esbuild 二进制不会被安装
+onlyBuiltDependencies:
+  - esbuild
+  - vue-demi

@@ -1,0 +1,3633 @@
+openapi: 3.0.3
+info:
+  title: 东华大学在线点餐系统课程版接口契约
+  version: 1.0.0-draft
+  description: 负责人：刘晟玺。Bearer JWT；管理端与用户端令牌不可混用。接口批次：认证与浏览、购物车与地址、订单、管理端。完整结构用于前后端并行开发，待钱文博真实评审确认；不声称已签字冻结。响应使用code/msg/data，code=1成功、0失败，业务拒绝可返回HTTP200。主键Java
+    Long当前JSON数字；前端避免生成超出JS安全整数范围的ID。LocalDateTime统一yyyy-MM-dd HH:mm:ss。 营业状态暂存内存，启动默认营业，重启恢复默认；HTTP409表示唯一键或数据完整性冲突。
+servers:
+- url: http://localhost:8080
+  description: 本地课程环境
+security:
+- BearerAuth: []
+paths:
+  /admin/employee/login:
+    post:
+      tags:
+      - 管理端employee
+      summary: 员工登录
+      operationId: post_admin_employee_login
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmployeeLoginVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeLoginDTO'
+  /admin/employee/logout:
+    post:
+      tags:
+      - 管理端employee
+      summary: 员工退出
+      operationId: post_admin_employee_logout
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      description: 客户端删除令牌；当前实现不维护服务端JWT撤销列表。
+  /admin/employee:
+    post:
+      tags:
+      - 管理端employee
+      summary: 新增员工
+      operationId: post_admin_employee
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeDTO'
+    put:
+      tags:
+      - 管理端employee
+      summary: 修改员工
+      operationId: put_admin_employee
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateDTO'
+      description: 修改时必须提供id；不含密码字段。
+  /admin/employee/page:
+    get:
+      tags:
+      - 管理端employee
+      summary: 员工分页
+      operationId: get_admin_employee_page
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageEmployeeResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - &id001
+        name: page
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+      - &id002
+        name: pageSize
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+  /admin/employee/{id}:
+    get:
+      tags:
+      - 管理端employee
+      summary: 员工详情
+      operationId: get_admin_employee_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmployeeResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/employee/status/{status}:
+    post:
+      tags:
+      - 管理端employee
+      summary: 启用禁用员工
+      operationId: post_admin_employee_status_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/category:
+    post:
+      tags:
+      - 管理端category
+      summary: 新增category
+      operationId: post_admin_category
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTO'
+    put:
+      tags:
+      - 管理端category
+      summary: 修改category
+      operationId: put_admin_category
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDTOUpdate'
+      description: 修改时必须提供id。
+    delete:
+      tags:
+      - 管理端category
+      summary: 删除category
+      operationId: delete_admin_category
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/category/page:
+    get:
+      tags:
+      - 管理端category
+      summary: category分页
+      operationId: get_admin_category_page
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageCategoryResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - *id001
+      - *id002
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+  /admin/category/status/{status}:
+    post:
+      tags:
+      - 管理端category
+      summary: 启停category
+      operationId: post_admin_category_status_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/category/list:
+    get:
+      tags:
+      - 管理端category
+      summary: 查询启用分类
+      operationId: get_admin_category_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListCategoryResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+  /admin/dish:
+    post:
+      tags:
+      - 管理端dish
+      summary: 新增dish
+      operationId: post_admin_dish
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishDTO'
+    put:
+      tags:
+      - 管理端dish
+      summary: 修改dish
+      operationId: put_admin_dish
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DishDTOUpdate'
+      description: 修改时必须提供id。
+    delete:
+      tags:
+      - 管理端dish
+      summary: 删除dish
+      operationId: delete_admin_dish
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: ids
+        in: query
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+        example:
+        - 1
+        - 2
+  /admin/dish/page:
+    get:
+      tags:
+      - 管理端dish
+      summary: dish分页
+      operationId: get_admin_dish_page
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageDishVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - *id001
+      - *id002
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+  /admin/dish/status/{status}:
+    post:
+      tags:
+      - 管理端dish
+      summary: 启停dish
+      operationId: post_admin_dish_status_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/dish/{id}:
+    get:
+      tags:
+      - 管理端dish
+      summary: dish详情
+      operationId: get_admin_dish_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/DishVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/dish/list:
+    get:
+      tags:
+      - 管理端dish
+      summary: 按分类查询菜品
+      operationId: get_admin_dish_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListDishResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+  /admin/setmeal:
+    post:
+      tags:
+      - 管理端setmeal
+      summary: 新增setmeal
+      operationId: post_admin_setmeal
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetmealDTO'
+    put:
+      tags:
+      - 管理端setmeal
+      summary: 修改setmeal
+      operationId: put_admin_setmeal
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetmealDTOUpdate'
+      description: 修改时必须提供id。
+    delete:
+      tags:
+      - 管理端setmeal
+      summary: 删除setmeal
+      operationId: delete_admin_setmeal
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: ids
+        in: query
+        required: true
+        style: form
+        explode: false
+        schema:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+        example:
+        - 1
+        - 2
+  /admin/setmeal/page:
+    get:
+      tags:
+      - 管理端setmeal
+      summary: setmeal分页
+      operationId: get_admin_setmeal_page
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageSetmealVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - *id001
+      - *id002
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+  /admin/setmeal/status/{status}:
+    post:
+      tags:
+      - 管理端setmeal
+      summary: 启停setmeal
+      operationId: post_admin_setmeal_status_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/setmeal/{id}:
+    get:
+      tags:
+      - 管理端setmeal
+      summary: setmeal详情
+      operationId: get_admin_setmeal_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/SetmealVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/shop/{status}:
+    put:
+      tags:
+      - 管理端shop
+      summary: 设置营业状态
+      operationId: put_admin_shop_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+  /admin/shop/status:
+    get:
+      tags:
+      - 管理端shop
+      summary: 读取营业状态
+      operationId: get_admin_shop_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ShopStatusResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/order/conditionSearch:
+    get:
+      tags:
+      - 管理端order
+      summary: 订单条件分页
+      operationId: get_admin_order_conditionSearch
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageOrderVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - *id001
+      - *id002
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: phone
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+      - name: beginTime
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+      - name: endTime
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+  /admin/order/details/{id}:
+    get:
+      tags:
+      - 管理端order
+      summary: 管理端订单详情
+      operationId: get_admin_order_details_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/OrderVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /admin/order/statistics:
+    get:
+      tags:
+      - 管理端order
+      summary: 订单状态计数
+      operationId: get_admin_order_statistics
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/OrderStatisticsVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /admin/order/confirm:
+    put:
+      tags:
+      - 管理端order
+      summary: confirm
+      operationId: put_admin_order_confirm
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersConfirmDTO'
+      description: 待接单2→已接单3
+  /admin/order/rejection:
+    put:
+      tags:
+      - 管理端order
+      summary: rejection
+      operationId: put_admin_order_rejection
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersRejectionDTO'
+      description: 待接单2→已取消6；已付款则模拟退款
+  /admin/order/cancel:
+    put:
+      tags:
+      - 管理端order
+      summary: cancel
+      operationId: put_admin_order_cancel
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersCancelDTO'
+      description: 允许状态→已取消6；已付款则模拟退款
+  /admin/order/delivery/{id}:
+    put:
+      tags:
+      - 管理端order
+      summary: 开始配送
+      operationId: put_admin_order_delivery_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      description: 已接单3→派送中4。
+  /admin/order/complete/{id}:
+    put:
+      tags:
+      - 管理端order
+      summary: 完成配送
+      operationId: put_admin_order_complete_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      description: 派送中4→已完成5；仅管理员有权执行。
+  /user/user/test-login:
+    post:
+      tags:
+      - 用户端user
+      summary: 课程测试用户登录
+      operationId: post_user_user_test_login
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/UserLoginVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestLoginDTO'
+      description: 仅course profile启用；不能用于生产。正式微信登录不属于本课程基线。
+  /user/category/list:
+    get:
+      tags:
+      - 用户端category
+      summary: 浏览启用分类
+      operationId: get_user_category_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListCategoryResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+  /user/dish/list:
+    get:
+      tags:
+      - 用户端dish
+      summary: 浏览在售菜品
+      operationId: get_user_dish_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListDishVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      parameters:
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          type: string
+  /user/setmeal/list:
+    get:
+      tags:
+      - 用户端setmeal
+      summary: 浏览在售套餐
+      operationId: get_user_setmeal_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListSetmealResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      parameters:
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+  /user/setmeal/dish/{id}:
+    get:
+      tags:
+      - 用户端setmeal
+      summary: 套餐菜品组成
+      operationId: get_user_setmeal_dish_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListDishItemVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /user/shop/status:
+    get:
+      tags:
+      - 用户端shop
+      summary: 浏览营业状态
+      operationId: get_user_shop_status
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ShopStatusResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security: []
+  /user/addressBook/list:
+    get:
+      tags:
+      - 用户端addressBook
+      summary: 本人地址列表
+      operationId: get_user_addressBook_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListAddressBookResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /user/addressBook:
+    post:
+      tags:
+      - 用户端addressBook
+      summary: 新增本人地址
+      operationId: post_user_addressBook
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressCreate'
+    put:
+      tags:
+      - 用户端addressBook
+      summary: 更新本人地址
+      operationId: put_user_addressBook
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressUpdate'
+    delete:
+      tags:
+      - 用户端addressBook
+      summary: 删除本人地址
+      operationId: delete_user_addressBook
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /user/addressBook/{id}:
+    get:
+      tags:
+      - 用户端addressBook
+      summary: 本人地址详情
+      operationId: get_user_addressBook_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/AddressBookResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /user/addressBook/default:
+    get:
+      tags:
+      - 用户端addressBook
+      summary: 本人默认地址
+      operationId: get_user_addressBook_default
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/AddressBookResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      description: 无默认地址时code=0，msg描述不存在。
+    put:
+      tags:
+      - 用户端addressBook
+      summary: 设置本人默认地址
+      operationId: put_user_addressBook_default
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdRequest'
+  /user/shoppingCart/add:
+    post:
+      tags:
+      - 用户端shoppingCart
+      summary: 加入本人购物车
+      operationId: post_user_shoppingCart_add
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCartDTO'
+  /user/shoppingCart/list:
+    get:
+      tags:
+      - 用户端shoppingCart
+      summary: 本人购物车
+      operationId: get_user_shoppingCart_list
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ListShoppingCartResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /user/shoppingCart/clean:
+    delete:
+      tags:
+      - 用户端shoppingCart
+      summary: 清空本人购物车
+      operationId: delete_user_shoppingCart_clean
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /user/shoppingCart/{id}:
+    put:
+      tags:
+      - 用户端shoppingCart
+      summary: 修改本人购物车项数量
+      operationId: put_user_shoppingCart_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: number
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99
+    delete:
+      tags:
+      - 用户端shoppingCart
+      summary: 删除本人购物车项
+      operationId: delete_user_shoppingCart_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /user/order/submit:
+    post:
+      tags:
+      - 用户端order
+      summary: 提交订单
+      operationId: post_user_order_submit
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/OrderSubmitVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersSubmitDTO'
+      description: 校验本人地址及购物车、商品在售；按实时商品价格重算金额，事务内保存快照并清空购物车。
+  /user/order/payment:
+    put:
+      tags:
+      - 用户端order
+      summary: 模拟支付本人订单
+      operationId: put_user_order_payment
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/OrderPaymentVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersPaymentDTO'
+      description: 待付款1→待接单2；重复支付同一已支付订单返回模拟成功。不会调用真实支付。
+  /user/order/historyOrders:
+    get:
+      tags:
+      - 用户端order
+      summary: 本人订单分页
+      operationId: get_user_order_historyOrders
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/PageOrderVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - *id001
+      - *id002
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+  /user/order/orderDetail/{id}:
+    get:
+      tags:
+      - 用户端order
+      summary: 本人订单详情
+      operationId: get_user_order_orderDetail_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/OrderVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+  /user/order/cancel/{id}:
+    put:
+      tags:
+      - 用户端order
+      summary: 取消本人订单
+      operationId: put_user_order_cancel_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      description: 仅服务端允许的状态可取消；退款仅课程模拟。
+  /user/order/repetition/{id}:
+    post:
+      tags:
+      - 用户端order
+      summary: 本人订单再来一单
+      operationId: post_user_order_repetition_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      description: 将订单商品加入本人购物车，重新校验商品在售及数量。
+  /user/order/reminder/{id}:
+    get:
+      tags:
+      - 用户端order
+      summary: 催促本人订单
+      operationId: get_user_order_reminder_id
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/EmptyResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      description: 沿用参考工程GET动作接口；有副作用，不应被预取或缓存。
+  /admin/report/turnoverStatistics:
+    get:
+      tags:
+      - 管理端report
+      summary: 按日营业额报表
+      operationId: get_admin_report_turnoverStatistics
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/TurnoverReportVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: begin
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      description: begin/end闭区间最多31天；有效完成且已支付订单，按order_time归属日期，无订单日补0。
+  /admin/workspace/businessData:
+    get:
+      tags:
+      - 管理端workspace
+      summary: 工作台经营数据
+      operationId: get_admin_workspace_businessData
+      responses:
+        '200':
+          description: 成功code=1；业务拒绝可能HTTP200且code=0，前端必须同时判断code。
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/BusinessDataVOResult'
+                - $ref: '#/components/schemas/ErrorResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      description: date默认服务器今天；有效订单=已完成5且已支付1。完成率=有效完成订单数/非取消订单数，分母0则0；新用户按create_time。
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: 请求格式、类型或参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+    Unauthorized:
+      description: JWT缺失、失效或身份不匹配
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+    Conflict:
+      description: 数据库唯一键或数据完整性冲突
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+    InternalError:
+      description: 服务器内部错误，响应不应暴露堆栈或敏感信息
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResult'
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        username:
+          type: string
+          description: 员工账号
+        name:
+          type: string
+          description: 名称
+        phone:
+          type: string
+          description: 联系电话
+        sex:
+          type: string
+        idNumber:
+          type: string
+          description: 证件号码（课程数据使用虚构值）
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+        createTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: '@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")'
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: '@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")'
+        createUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 创建员工ID（后端从JWT获取）
+        updateUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 修改员工ID（后端从JWT获取）
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        type:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+          description: '类型: 1菜品分类 2套餐分类'
+        name:
+          type: string
+          description: 分类名称
+        sort:
+          type: integer
+          format: int32
+          description: 顺序
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          description: 分类状态 0标识禁用 1表示启用
+        createTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 创建时间
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 更新时间
+        createUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 创建人
+        updateUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 修改人
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        name:
+          type: string
+          description: 菜品名称
+        categoryId:
+          type: integer
+          format: int64
+          description: 菜品分类id
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        image:
+          type: string
+          description: 图片
+        description:
+          type: string
+          description: 描述信息
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          description: 0 停售 1 起售
+        createTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 创建时间
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 最近修改时间
+        createUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 创建员工ID（后端从JWT获取）
+        updateUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 修改员工ID（后端从JWT获取）
+    DishFlavor:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        dishId:
+          type: integer
+          format: int64
+          description: 菜品id
+        name:
+          type: string
+          description: 口味名称
+        value:
+          type: string
+          description: 口味数据list
+    Setmeal:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        categoryId:
+          type: integer
+          format: int64
+          description: 分类id
+        name:
+          type: string
+          description: 套餐名称
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          description: 状态 0:停用 1:启用
+        description:
+          type: string
+          description: 描述信息
+        image:
+          type: string
+          description: 图片
+        createTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 创建时间
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          readOnly: true
+          description: 最近修改时间
+        createUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 创建员工ID（后端从JWT获取）
+        updateUser:
+          type: integer
+          format: int64
+          readOnly: true
+          description: 修改员工ID（后端从JWT获取）
+    SetmealDish:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        setmealId:
+          type: integer
+          format: int64
+          description: 套餐id
+        dishId:
+          type: integer
+          format: int64
+          description: 菜品id
+        name:
+          type: string
+          description: 菜品名称 （冗余字段）
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        copies:
+          type: integer
+          format: int32
+          description: 份数
+    ShoppingCart:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        name:
+          type: string
+          description: 名称
+        userId:
+          type: integer
+          format: int64
+          description: 用户id
+        dishId:
+          type: integer
+          format: int64
+          description: 菜品id
+        setmealId:
+          type: integer
+          format: int64
+          description: 套餐id
+        dishFlavor:
+          type: string
+          description: 口味
+        number:
+          type: integer
+          format: int32
+          description: 数量
+        amount:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        image:
+          type: string
+          description: 图片
+        createTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 创建时间
+    AddressBook:
+      type: object
+      properties:
+        id: &id038
+          type: integer
+          format: int64
+          description: 主键标识
+        userId:
+          type: integer
+          format: int64
+          description: 用户id
+        consignee: &id027
+          type: string
+          description: 收货人
+        phone: &id028
+          type: string
+          description: 手机号
+        sex: &id029
+          type: string
+          description: 性别 0 女 1 男
+        provinceCode: &id030
+          type: string
+          description: 省级区划编号
+        provinceName: &id031
+          type: string
+          description: 省级名称
+        cityCode: &id032
+          type: string
+          description: 市级区划编号
+        cityName: &id033
+          type: string
+          description: 市级名称
+        districtCode: &id034
+          type: string
+          description: 区级区划编号
+        districtName: &id035
+          type: string
+          description: 区级名称
+        detail: &id036
+          type: string
+          description: 详细地址
+        label: &id037
+          type: string
+          description: 标签
+        isDefault:
+          type: integer
+          format: int32
+          description: 是否默认 0否 1是
+    Orders:
+      type: object
+      properties:
+        id: &id003
+          type: integer
+          format: int64
+          description: 主键标识
+        number: &id004
+          type: string
+          description: 订单号
+        status: &id005
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          description: 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+        userId: &id006
+          type: integer
+          format: int64
+          description: 下单用户id
+        addressBookId: &id007
+          type: integer
+          format: int64
+          description: 地址id
+        orderTime: &id008
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 下单时间
+        checkoutTime: &id009
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 结账时间
+        payMethod: &id010
+          type: integer
+          format: int32
+          description: 支付方式 1微信，2支付宝
+        payStatus: &id011
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          - 2
+          description: 支付状态 0未支付 1已支付 2退款
+        amount: &id012
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        remark: &id013
+          type: string
+          description: 备注
+        userName: &id014
+          type: string
+          description: 用户名
+        phone: &id015
+          type: string
+          description: 手机号
+        address: &id016
+          type: string
+          description: 地址
+        consignee: &id017
+          type: string
+          description: 收货人
+        cancelReason: &id018
+          type: string
+          description: 订单取消原因
+        rejectionReason: &id019
+          type: string
+          description: 订单拒绝原因
+        cancelTime: &id020
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 订单取消时间
+        estimatedDeliveryTime: &id021
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 预计送达时间
+        deliveryStatus: &id022
+          type: integer
+          format: int32
+          description: 配送状态  1立即送出  0选择具体时间
+        deliveryTime: &id023
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 送达时间
+        packAmount: &id024
+          type: integer
+          format: int32
+          description: 打包费
+        tablewareNumber: &id025
+          type: integer
+          format: int32
+          description: 餐具数量
+        tablewareStatus: &id026
+          type: integer
+          format: int32
+          description: 餐具数量状态  1按餐量提供  0选择具体数量
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        name:
+          type: string
+          description: 名称
+        orderId:
+          type: integer
+          format: int64
+          description: 订单id
+        dishId:
+          type: integer
+          format: int64
+          description: 菜品id
+        setmealId:
+          type: integer
+          format: int64
+          description: 套餐id
+        dishFlavor:
+          type: string
+          description: 口味
+        number:
+          type: integer
+          format: int32
+          description: 数量
+        amount:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        image:
+          type: string
+          description: 图片
+    EmployeeLoginDTO:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 员工账号
+        password:
+          type: string
+          description: 密码，仅请求使用，不出现在响应或日志
+      required:
+      - username
+      - password
+    EmployeeDTO:
+      type: object
+      properties:
+        id: &id039
+          type: integer
+          format: int64
+          description: 主键标识
+        username: &id040
+          type: string
+          description: 员工账号
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+          maxLength: 128
+          description: 创建员工时必填8..128字符；后端PBKDF2派生保存，响应不回传。
+        name: &id041
+          type: string
+          description: 名称
+        phone: &id042
+          type: string
+          description: 联系电话
+        sex: &id043
+          type: string
+        idNumber: &id044
+          type: string
+          description: 证件号码（课程数据使用虚构值）
+      required:
+      - username
+      - name
+      - password
+    CategoryDTO:
+      type: object
+      properties: &id045
+        id:
+          type: integer
+          format: int64
+          description: 主键
+        type:
+          type: integer
+          format: int32
+          enum:
+          - 1
+          - 2
+          description: 类型 1 菜品分类 2 套餐分类
+        name:
+          type: string
+          description: 分类名称
+        sort:
+          type: integer
+          format: int32
+          description: 排序
+      required:
+      - type
+      - name
+      - sort
+    DishDTO:
+      type: object
+      properties: &id046
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        name:
+          type: string
+          description: 菜品名称
+        categoryId:
+          type: integer
+          format: int64
+          description: 菜品分类id
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        image:
+          type: string
+          description: 图片
+        description:
+          type: string
+          description: 描述信息
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          description: 0 停售 1 起售
+        flavors:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishFlavor'
+          description: 口味
+      required:
+      - name
+      - categoryId
+      - price
+      - image
+    SetmealDTO:
+      type: object
+      properties: &id047
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        categoryId:
+          type: integer
+          format: int64
+          description: 分类id
+        name:
+          type: string
+          description: 套餐名称
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        status:
+          type: integer
+          format: int32
+          enum:
+          - 0
+          - 1
+          description: 状态 0:停用 1:启用
+        description:
+          type: string
+          description: 描述信息
+        image:
+          type: string
+          description: 图片
+        setmealDishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetmealDish'
+          description: 套餐菜品关系
+      required:
+      - name
+      - categoryId
+      - price
+      - image
+      - setmealDishes
+    ShoppingCartDTO:
+      type: object
+      properties:
+        dishId:
+          type: integer
+          format: int64
+        setmealId:
+          type: integer
+          format: int64
+        dishFlavor:
+          type: string
+      oneOf:
+      - required:
+        - dishId
+        not:
+          required:
+          - setmealId
+      - required:
+        - setmealId
+        not:
+          required:
+          - dishId
+      description: dishId与setmealId必须且只能提供一个；相同商品及口味合并，最多99份。
+    OrdersSubmitDTO:
+      type: object
+      properties:
+        addressBookId:
+          type: integer
+          format: int64
+          description: 地址簿id
+        payMethod:
+          type: integer
+          format: int32
+          description: 兼容原支付方式1/2；课程版仅模拟支付，无真实扣款。
+        remark:
+          type: string
+          description: 备注
+        estimatedDeliveryTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+        deliveryStatus:
+          type: integer
+          format: int32
+          description: 配送状态  1立即送出  0选择具体时间
+        tablewareNumber:
+          type: integer
+          format: int32
+          description: 餐具数量
+        tablewareStatus:
+          type: integer
+          format: int32
+          description: 餐具数量状态  1按餐量提供  0选择具体数量
+        packAmount:
+          type: integer
+          format: int32
+          description: 兼容原前端字段；服务端忽略，金额按实时商品单价重算，课程版打包费为0。
+        amount:
+          type: number
+          description: 兼容原前端字段；服务端忽略，金额按实时商品单价重算，课程版打包费为0。
+          multipleOf: 0.01
+      required:
+      - addressBookId
+    OrdersPaymentDTO:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+          description: 订单号
+        payMethod:
+          type: integer
+          format: int32
+          description: 付款方式
+      required:
+      - orderNumber
+    OrdersConfirmDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        status:
+          type: integer
+          format: int32
+          description: 订单状态 1待付款 2待接单 3 已接单 4 派送中 5 已完成 6 已取消 7 退款
+      required:
+      - id
+    OrdersRejectionDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        rejectionReason:
+          type: string
+          description: 订单拒绝原因
+      required:
+      - id
+      - rejectionReason
+    OrdersCancelDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        cancelReason:
+          type: string
+          description: 订单取消原因
+      required:
+      - id
+      - cancelReason
+    EmployeeLoginVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        userName:
+          type: string
+          description: 用户名
+        name:
+          type: string
+          description: 名称
+        token:
+          type: string
+          description: 'JWT；后续放入Authorization: Bearer <token>，不要写入日志'
+    UserLoginVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        openid:
+          type: string
+          description: 课程用户稳定标识
+        token:
+          type: string
+          description: 'JWT；后续放入Authorization: Bearer <token>，不要写入日志'
+    DishVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        name:
+          type: string
+          description: 菜品名称
+        categoryId:
+          type: integer
+          format: int64
+          description: 菜品分类id
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        image:
+          type: string
+          description: 图片
+        description:
+          type: string
+          description: 描述信息
+        status:
+          type: integer
+          format: int32
+          description: 0 停售 1 起售
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 更新时间
+        categoryName:
+          type: string
+          description: 分类名称
+        flavors:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishFlavor'
+          description: 菜品关联的口味
+        copies:
+          type: integer
+          format: int32
+    SetmealVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键标识
+        categoryId:
+          type: integer
+          format: int64
+          description: 分类id
+        name:
+          type: string
+          description: 套餐名称
+        price:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        status:
+          type: integer
+          format: int32
+          description: 状态 0:停用 1:启用
+        description:
+          type: string
+          description: 描述信息
+        image:
+          type: string
+          description: 图片
+        updateTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 更新时间
+        categoryName:
+          type: string
+          description: 分类名称
+        setmealDishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetmealDish'
+          description: 套餐和菜品的关联关系
+    DishItemVO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 菜品名称
+        copies:
+          type: integer
+          format: int32
+          description: 份数
+        image:
+          type: string
+          description: 菜品图片
+        description:
+          type: string
+          description: 菜品描述
+    OrderSubmitVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 订单id
+        orderNumber:
+          type: string
+          description: 订单号
+        orderAmount:
+          type: number
+          description: 人民币元，最多2位小数
+          multipleOf: 0.01
+        orderTime:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$
+          example: '2026-10-26 12:30:00'
+          description: 下单时间
+    OrderPaymentVO:
+      type: object
+      properties:
+        nonceStr:
+          type: string
+          description: 模拟支付随机标记
+        paySign:
+          type: string
+          description: 随机字符串
+        timeStamp:
+          type: string
+          description: 签名
+        signType:
+          type: string
+          description: 时间戳
+        packageStr:
+          type: string
+          description: 签名算法
+      description: 模拟支付兼容返回结构；所有字段均为演示标记，不含真实支付凭据。packageStr=SIMULATED:<订单号>。
+    OrderStatisticsVO:
+      type: object
+      properties:
+        toBeConfirmed:
+          type: integer
+          format: int32
+          description: 待接单数量
+        confirmed:
+          type: integer
+          format: int32
+          description: 待派送数量
+        deliveryInProgress:
+          type: integer
+          format: int32
+          description: 派送中数量
+    OrderVO:
+      type: object
+      properties:
+        id: *id003
+        number: *id004
+        status: *id005
+        userId: *id006
+        addressBookId: *id007
+        orderTime: *id008
+        checkoutTime: *id009
+        payMethod: *id010
+        payStatus: *id011
+        amount: *id012
+        remark: *id013
+        userName: *id014
+        phone: *id015
+        address: *id016
+        consignee: *id017
+        cancelReason: *id018
+        rejectionReason: *id019
+        cancelTime: *id020
+        estimatedDeliveryTime: *id021
+        deliveryStatus: *id022
+        deliveryTime: *id023
+        packAmount: *id024
+        tablewareNumber: *id025
+        tablewareStatus: *id026
+        orderDishes:
+          type: string
+          description: 订单菜品信息
+        orderDetailList:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDetail'
+          description: 订单详情
+    TurnoverReportVO:
+      type: object
+      properties:
+        dateList:
+          type: string
+          description: 日期，以逗号分隔，例如：2022-10-01,2022-10-02,2022-10-03
+        turnoverList:
+          type: string
+          description: 营业额，以逗号分隔，例如：406.0,1520.0,75.0
+    BusinessDataVO:
+      type: object
+      properties:
+        turnover:
+          type: number
+          format: double
+        validOrderCount:
+          type: integer
+          format: int32
+          description: 营业额
+        orderCompletionRate:
+          type: number
+          format: double
+          description: 有效订单数
+        unitPrice:
+          type: number
+          format: double
+          description: 订单完成率
+        newUsers:
+          type: integer
+          format: int32
+          description: 平均客单价
+    TestLoginDTO:
+      type: object
+      required:
+      - loginCode
+      properties:
+        loginCode:
+          type: string
+          enum:
+          - demo-user
+          - demo-user-2
+          description: 仅course演示身份，不代表真实注册登录
+    AddressCreate:
+      type: object
+      required:
+      - consignee
+      - phone
+      - detail
+      properties:
+        consignee: *id027
+        phone: *id028
+        sex: *id029
+        provinceCode: *id030
+        provinceName: *id031
+        cityCode: *id032
+        cityName: *id033
+        districtCode: *id034
+        districtName: *id035
+        detail: *id036
+        label: *id037
+    AddressUpdate:
+      type: object
+      required:
+      - id
+      properties:
+        id: *id038
+        consignee: *id027
+        phone: *id028
+        sex: *id029
+        provinceCode: *id030
+        provinceName: *id031
+        cityCode: *id032
+        cityName: *id033
+        districtCode: *id034
+        districtName: *id035
+        detail: *id036
+        label: *id037
+    IdRequest:
+      type: object
+      required:
+      - id
+      properties:
+        id: *id038
+    PageEmployee:
+      type: object
+      required:
+      - total
+      - records
+      properties:
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+    PageCategory:
+      type: object
+      required:
+      - total
+      - records
+      properties:
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PageDishVO:
+      type: object
+      required:
+      - total
+      - records
+      properties:
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishVO'
+    PageSetmealVO:
+      type: object
+      required:
+      - total
+      - records
+      properties:
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetmealVO'
+    PageOrderVO:
+      type: object
+      required:
+      - total
+      - records
+      properties:
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderVO'
+    ErrorResult:
+      type: object
+      required:
+      - code
+      - msg
+      properties:
+        code:
+          type: integer
+          enum:
+          - 0
+        msg:
+          type: string
+          description: 可展示的失败原因
+        data:
+          type: string
+          nullable: true
+      example:
+        code: 0
+        msg: 操作失败
+        data: null
+    EmptyResult:
+      type: object
+      required:
+      - code
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: string
+          nullable: true
+      example:
+        code: 1
+        msg: null
+        data: null
+    EmployeeUpdateDTO:
+      type: object
+      required:
+      - id
+      properties:
+        id: *id039
+        username: *id040
+        name: *id041
+        phone: *id042
+        sex: *id043
+        idNumber: *id044
+    CategoryDTOUpdate:
+      type: object
+      required:
+      - id
+      properties: *id045
+    DishDTOUpdate:
+      type: object
+      required:
+      - id
+      properties: *id046
+    SetmealDTOUpdate:
+      type: object
+      required:
+      - id
+      properties: *id047
+    EmployeeLoginVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/EmployeeLoginVO'
+    PageEmployeeResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/PageEmployee'
+    EmployeeResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/Employee'
+    PageCategoryResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/PageCategory'
+    ListCategoryResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PageDishVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/PageDishVO'
+    DishVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/DishVO'
+    ListDishResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dish'
+    PageSetmealVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/PageSetmealVO'
+    SetmealVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/SetmealVO'
+    ShopStatusResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: integer
+          enum:
+          - 0
+          - 1
+    PageOrderVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/PageOrderVO'
+    OrderVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/OrderVO'
+    OrderStatisticsVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/OrderStatisticsVO'
+    UserLoginVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/UserLoginVO'
+    ListDishVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishVO'
+    ListSetmealResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Setmeal'
+    ListDishItemVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DishItemVO'
+    ListAddressBookResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressBook'
+    AddressBookResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/AddressBook'
+    ListShoppingCartResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShoppingCart'
+    OrderSubmitVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/OrderSubmitVO'
+    OrderPaymentVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/OrderPaymentVO'
+    TurnoverReportVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/TurnoverReportVO'
+    BusinessDataVOResult:
+      type: object
+      required:
+      - code
+      - data
+      properties:
+        code:
+          type: integer
+          enum:
+          - 1
+        msg:
+          type: string
+          nullable: true
+        data:
+          $ref: '#/components/schemas/BusinessDataVO'

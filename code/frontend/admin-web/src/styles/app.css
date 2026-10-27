@@ -1,0 +1,29 @@
+html, body, #app { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f5f7fa;
+  color: #303133;
+}
+.mock-flag {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 4000;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffd08a;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.page-card { background: #fff; border-radius: 8px; padding: 16px; }
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.page-head h2 { margin: 0; font-size: 18px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.muted { color: #909399; font-size: 12px; }
+.price { color: #f56c6c; font-weight: 600; }

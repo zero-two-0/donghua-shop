@@ -1,0 +1,16 @@
+# 统一换行符，避免 Windows 下 CRLF 警告刷屏
+* text=auto eol=lf
+
+# PowerShell / 批处理保持 CRLF，Windows 上双击运行更稳
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制文件不做换行转换
+*.docx binary
+*.xlsx binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jar binary
+*.zip binary

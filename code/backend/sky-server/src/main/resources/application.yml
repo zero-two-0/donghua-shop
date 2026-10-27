@@ -1,0 +1,31 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  profiles:
+    default: course
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/takeout_course?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  cache:
+    type: simple
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.sky.entity
+  configuration:
+    map-underscore-to-camel-case: true
+sky:
+  jwt:
+    admin-ttl: 7200000
+    user-ttl: 7200000
+    admin-token-name: token
+    user-token-name: authentication
+course:
+  admin-password: ${COURSE_ADMIN_PASSWORD:}
+logging:
+  level:
+    com.sky: info

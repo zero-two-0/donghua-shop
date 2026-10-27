@@ -1,0 +1,60 @@
+{
+  "build_result": "BUILD SUCCESS",
+  "build_finished_at": "2026-10-26T23:11:19+08:00",
+  "java": "17.0.18",
+  "maven": "3.9.11",
+  "test_database": "H2 2.1.214 MySQL mode, in-memory",
+  "suites": [
+    {
+      "name": "com.sky.ApiIntegrationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.279"
+    },
+    {
+      "name": "com.sky.AuthenticationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.026"
+    },
+    {
+      "name": "com.sky.service.BusinessServiceTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.059"
+    },
+    {
+      "name": "com.sky.service.CatalogValidationTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.053"
+    },
+    {
+      "name": "com.sky.service.ReportServiceTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.sky.test.SpringDataRedisTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.335"
+    }
+  ],
+  "total": 50,
+  "jar_sha256": "24f6d7cea5348015a680a2e72b5599208f3cdcbfad6380bafd50fdba83cd3432",
+  "contract_sha256": "820a723628f8d9a953c92510dfa915199e68cc8531f395ea98c92fe1ef86a6b7"
+}
