@@ -125,7 +125,11 @@ onMounted(() => {
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .info { flex: 1; min-width: 0; }
 .name { font-size: 15px; font-weight: 600; }
-.row-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+@media (max-width: 360px) {
+  .thumb { width: 56px; height: 56px; font-size: 18px; }
+  .name { font-size: 14px; }
+}
 .del { height: 100%; }
 .clear-row { padding: 12px 16px 80px; text-align: right; }
 .loading { padding: 40px 0; }

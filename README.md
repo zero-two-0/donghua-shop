@@ -76,6 +76,9 @@ node scripts\smoke-api.mjs
 | 权限与越权 | 两身份交叉访问地址/购物车/订单/支付/取消，22 项全部被后端拒绝且数据未变 | [api-authz.json](docs/integration/evidence/api-authz.json) |
 | 静态部署 | dist 脱离 dev server 独立运行（静态托管 + 接口反代），13 项通过 | [nginx-static.md](docs/deployment/nginx-static.md)、[static-deploy.json](docs/integration/evidence/static-deploy.json) |
 | 测试用例 | 30 条用例（主流程/异常/权限/前端交互），标注已执行与待执行 | [test-cases.md](docs/integration/test-cases.md) |
+| 测试报告 | 五套件 102 项断言全通过；未执行项单列 | [test-report.md](docs/integration/test-report.md) |
+| 复测记录 | F-01~F-08 逐条复测方式与结论（含未修复项） | [retest-record.md](docs/integration/retest-record.md) |
+| 浏览器验证 | Edge 无头渲染 + 截图（含 320/390/1280 三档宽度） | [browser-check.json](docs/integration/evidence/browser-check.json)、`docs/integration/evidence/shots/` |
 | 前端自测 | 两工程构建通过、代理穿透真实后端、管理端已分包 | [frontend-self-test.md](docs/integration/frontend-self-test.md) |
 | 缺陷登记 | F-01~F-07（购物车 amount 语义、支付幂等、dish/list 返回类型、缺详情接口、`/assets/` 前缀冲突等） | [defects.md](docs/integration/defects.md) |
 | 运行手册 | 换机复现、常见问题、目录指引 | [runbook.md](docs/integration/runbook.md) |
@@ -85,7 +88,10 @@ node scripts\smoke-api.mjs
 ```text
 scripts/smoke-api.mjs        合计 37 项，通过 37，失败 0（主流程）
 scripts/smoke-authz.mjs      合计 22 项，通过 22，失败 0（越权/权限）
+scripts/smoke-exceptions.mjs 合计 16 项，通过 16，失败 0（异常/边界/幂等/取消）
 check-static-deploy.mjs      合计 13 项，通过 13，失败 0（dist 静态托管 + 反代）
+browser-check.mjs            合计 14 项，通过 14，失败 0（Edge 无头渲染 + 响应式）
+合计 102 项自动断言全部通过
 user-h5  build               ✓ 29 文件 / 618.6 KB
 admin-web build              ✓ 25 文件 / 1.64 MB；已分包：入口 9.7 KB、element-plus 1.09 MB、vue-vendor 114 KB、axios 51 KB
 5173 → 8080 proxy            /user/category/list code=1；test-login + 购物车 code=1
@@ -97,6 +103,8 @@ admin-web build              ✓ 25 文件 / 1.64 MB；已分包：入口 9.7 KB
 
 - 权威材料（组长）：[leader/README.md](docs/leader/README.md)｜[SRS](docs/leader/week1/SRS.md)｜[技术方案](docs/leader/week2/technical-design.md)｜[DB 设计](docs/leader/week2/database-design.md)｜[OpenAPI](docs/leader/week3/openapi.yaml)｜[后端说明](code/backend/README.md)｜[后端自测报告](docs/leader/week4/backend-self-test.md)
 - 整合材料（组员）：[页面-接口对应表](docs/integration/page-api-map.md)｜[契约差异](docs/integration/contract-diff.md)｜[缺陷台账](docs/integration/defects.md)｜[联调记录](docs/integration/integration-record.md)｜[测试用例](docs/integration/test-cases.md)｜[前端自测](docs/integration/frontend-self-test.md)｜[运行手册](docs/integration/runbook.md)｜[静态部署](docs/deployment/nginx-static.md)
+- 报告与验收：[课程技术报告](docs/report/technical-report.md)｜[测试报告](docs/integration/test-report.md)｜[复测记录](docs/integration/retest-record.md)｜[部署与验收说明](docs/deployment/deploy-acceptance.md)
+- PR 说明：[第 5~7 周 PR 描述](docs/integration/pull-request-week5.md)
 - 周报：[个人（10.19—10.26 整合版）](docs/meetings/个人工作周报_钱文博_2026-10-19至10-26.docx)｜[小组（第 1~4 周）](docs/meetings/小组工作周报_第1-4周.docx)
 - 部署配置：[deploy/nginx.conf](deploy/nginx.conf)
 - 早期草案（已归档）：`docs/requirements`、`docs/architecture`、`docs/database`、`docs/api`、`docs/quality`、`docs/testing`、`docs/meetings`（除周报外的会议/评审稿）
@@ -105,4 +113,4 @@ admin-web build              ✓ 25 文件 / 1.64 MB；已分包：入口 9.7 KB
 
 - 契约以 `docs/leader/week3/openapi.yaml` 为唯一来源；前端改动若涉及字段/路径，先改契约再改实现。
 - 接口变更需同时更新：OpenAPI、前端字段使用点、`docs/integration/page-api-map.md`、缺陷/联调记录。
-- 提交前本地验证：`node scripts\smoke-api.mjs`、`node scripts\smoke-authz.mjs`、`.\scripts\build-frontend.ps1`。
+- 提交前本地验证：`node scripts\smoke-api.mjs`、`smoke-authz.mjs`、`smoke-exceptions.mjs`、`.\scripts\build-frontend.ps1`。

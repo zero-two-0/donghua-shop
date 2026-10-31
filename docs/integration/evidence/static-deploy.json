@@ -2,7 +2,7 @@
   "mode": "dist 静态托管 + 接口反代（与 deploy/nginx.conf 规则一致；本机未安装 Nginx）",
   "userBase": "http://127.0.0.1:8081",
   "adminBase": "http://127.0.0.1:8082",
-  "finishedAt": "2026-10-31T08:32:08.733Z",
+  "finishedAt": "2026-10-31T08:47:45.901Z",
   "steps": [
     {
       "name": "用户端首页返回 index.html",
@@ -16,7 +16,7 @@
       "name": "用户端入口 JS 可访问且 MIME 正确",
       "ok": true,
       "detail": {
-        "entry": "/assets/index-xq9dWOja.js",
+        "entry": "/assets/index-BAYpMvtm.js",
         "status": 200,
         "kb": 380
       }
@@ -51,7 +51,7 @@
       "ok": true,
       "detail": {
         "status": 200,
-        "items": 0
+        "items": 1
       }
     },
     {

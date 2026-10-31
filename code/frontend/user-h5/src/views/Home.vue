@@ -168,7 +168,7 @@ onMounted(init)
 .loading { padding: 48px 0; }
 .body { display: flex; align-items: flex-start; }
 .cats { width: 96px; flex: none; }
-.list { flex: 1; padding: 0 12px 12px 0; }
+.list { flex: 1; min-width: 0; padding: 0 12px 12px 0; }
 .dish-row {
   display: flex;
   gap: 10px;
@@ -194,5 +194,18 @@ onMounted(init)
 .info { flex: 1; min-width: 0; }
 .name { font-size: 15px; font-weight: 600; }
 .desc { margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+
+/* 320px 窄屏：菜名与“加入购物车”按钮不能顶出屏幕 */
+@media (max-width: 360px) {
+  /* 320px 下分类名要能单行显示 */
+  .cats {
+    width: 72px;
+    --van-sidebar-font-size: 12px;
+    --van-sidebar-padding: 12px 6px;
+  }
+  .thumb { width: 56px; height: 56px; font-size: 18px; }
+  .name { font-size: 14px; }
+  .desc { font-size: 11px; }
+}
 </style>

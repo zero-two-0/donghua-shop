@@ -1,0 +1,126 @@
+{
+  "mode": "Edge headless + CDP（真实浏览器渲染，注入真实登录态）",
+  "shots": [
+    "admin-01-login-1440.png",
+    "admin-02-dashboard-1440.png",
+    "admin-03-orders-1440.png",
+    "admin-04-dishes-1440.png",
+    "h5-01-login-390.png",
+    "h5-02-home-390.png",
+    "h5-03-cart-390.png",
+    "h5-04-orders-390.png",
+    "h5-05-home-1280.png",
+    "h5-06-home-320.png",
+    "h5-07-cart-320.png"
+  ],
+  "finishedAt": "2026-10-31T08:46:03.777Z",
+  "steps": [
+    {
+      "name": "用户端登录页渲染（含演示身份）",
+      "ok": true,
+      "detail": {
+        "chars": 263
+      }
+    },
+    {
+      "name": "用户端首页渲染真实菜品",
+      "ok": true,
+      "detail": {
+        "chars": 96
+      }
+    },
+    {
+      "name": "购物车页显示商品与合计",
+      "ok": true,
+      "detail": {
+        "chars": 83
+      }
+    },
+    {
+      "name": "订单列表页渲染（状态标签或空态）",
+      "ok": true,
+      "detail": {
+        "chars": 706
+      }
+    },
+    {
+      "name": "地址页渲染（新增按钮可见）",
+      "ok": true,
+      "detail": {
+        "chars": 549
+      }
+    },
+    {
+      "name": "桌面宽度下无横向滚动",
+      "ok": true,
+      "detail": {
+        "w": 1265,
+        "c": 1265
+      }
+    },
+    {
+      "name": "320px 窄屏首页无横向滚动",
+      "ok": true,
+      "detail": {
+        "w": 320,
+        "c": 320
+      }
+    },
+    {
+      "name": "320px 窄屏购物车无横向滚动",
+      "ok": true,
+      "detail": {
+        "w": 320,
+        "c": 320
+      }
+    },
+    {
+      "name": "320px 窄屏订单页无横向滚动",
+      "ok": true,
+      "detail": {
+        "w": 320,
+        "c": 320
+      }
+    },
+    {
+      "name": "未登录访问购物车被路由守卫拦到登录页",
+      "ok": true,
+      "detail": {
+        "hash": "#/login?redirect=/cart"
+      }
+    },
+    {
+      "name": "管理端登录页渲染",
+      "ok": true,
+      "detail": {
+        "chars": 172
+      }
+    },
+    {
+      "name": "管理端工作台渲染经营数据",
+      "ok": true,
+      "detail": {
+        "chars": 321
+      }
+    },
+    {
+      "name": "管理端订单管理渲染（含状态标签）",
+      "ok": true,
+      "detail": {
+        "chars": 1419
+      }
+    },
+    {
+      "name": "管理端菜品管理渲染（含宫保鸡丁）",
+      "ok": true,
+      "detail": {
+        "chars": 245
+      }
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "pass": 14,
+    "fail": 0
+  }
+}

@@ -26,10 +26,21 @@
 | [integration/frontend-self-test.md](integration/frontend-self-test.md) | 构建、代理连通、37 项接口冒烟、未验证项 | 完成 |
 | [integration/runbook.md](integration/runbook.md) | 换机复现与常见问题 | 完成 |
 | [integration/test-cases.md](integration/test-cases.md) | 第 7 周测试用例 30 条（主流程/异常/权限/前端交互），标注已执行与待执行 | 完成 |
+| [integration/test-report.md](integration/test-report.md) | 系统测试报告：五套件 102 项、关键验证点、发现的问题、未执行项 | 完成 |
+| [integration/retest-record.md](integration/retest-record.md) | 缺陷复测记录 F-01~F-08（含未修复项与责任人） | 完成 |
+| [integration/pull-request-week5.md](integration/pull-request-week5.md) | 第 5~7 周 PR 描述（可直接粘贴到 GitHub） | 完成 |
+| [report/technical-report.md](report/technical-report.md) | 课程技术报告（需求/方案/数据库/契约/前后端/测试/缺陷/部署/分工/合规） | 完成（部署章节待第 8 周补） |
 | [deployment/nginx-static.md](deployment/nginx-static.md) | 静态部署方案、/assets/ 前缀冲突（F-07）与 13 项实测 | 完成（Nginx 待第 8 周） |
+| [deployment/deploy-acceptance.md](deployment/deploy-acceptance.md) | 部署步骤、环境变量、13 项验收清单（含待填列） | 完成（待实测填写） |
 | [integration/evidence/api-smoke.json](integration/evidence/api-smoke.json) | 主流程冒烟原始结果（37 项逐项 ok/detail） | 证据 |
 | [integration/evidence/api-authz.json](integration/evidence/api-authz.json) | 越权/权限用例原始结果（22 项） | 证据 |
 | [integration/evidence/static-deploy.json](integration/evidence/static-deploy.json) | dist 静态托管验证原始结果（13 项） | 证据 |
+| [integration/evidence/api-exceptions.json](integration/evidence/api-exceptions.json) | 异常与边界用例原始结果（16 项） | 证据 |
+| [integration/evidence/browser-check.json](integration/evidence/browser-check.json) | 浏览器渲染与响应式原始结果（14 项） | 证据 |
+| `integration/evidence/shots/` | Edge 无头截图（H5 登录/首页/购物车/订单/320px/1280px + 管理端 4 页） | 证据 |
+| [integration/evidence/api-exceptions.json](integration/evidence/api-exceptions.json) | 异常与边界用例原始结果（16 项） | 证据 |
+| [integration/evidence/browser-check.json](integration/evidence/browser-check.json) | 浏览器渲染与响应式原始结果（14 项） | 证据 |
+| `integration/evidence/shots/` | Edge 无头截图（登录/首页/购物车/订单/320px/1280px/管理端 4 页） | 证据 |
 
 ## 3 组员早期草案（已归档，勿作依据）
 

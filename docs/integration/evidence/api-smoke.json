@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:8080",
-  "startedAt": "2026-10-27T04:12:08.271Z",
+  "startedAt": "2026-10-31T08:47:45.941Z",
   "steps": [
     {
       "group": "认证",
@@ -93,7 +93,7 @@
       "ok": true,
       "detail": {
         "count": 1,
-        "number": 1,
+        "number": 4,
         "amount": 18
       }
     },
@@ -128,7 +128,7 @@
       "name": "GET /user/addressBook/list",
       "ok": true,
       "detail": {
-        "count": 7
+        "count": 10
       }
     },
     {
@@ -144,8 +144,8 @@
       "name": "POST /user/order/submit（客户端金额 0.01 不予采信）",
       "ok": true,
       "detail": {
-        "orderId": 6,
-        "orderNumber": "705b75ef63824fa5b285c3b23a27042e",
+        "orderId": 12,
+        "orderNumber": "267581d93c9647a2ac7b16bdca157786",
         "orderAmount": 36
       }
     },
@@ -172,7 +172,7 @@
       "name": "PUT /user/order/payment（模拟支付）",
       "ok": true,
       "detail": {
-        "packageStr": "SIMULATED:705b75ef63824fa5b285c3b23a27042e"
+        "packageStr": "SIMULATED:267581d93c9647a2ac7b16bdca157786"
       }
     },
     {
@@ -182,7 +182,7 @@
       "detail": {
         "http": 200,
         "code": 1,
-        "packageStr": "SIMULATED:705b75ef63824fa5b285c3b23a27042e"
+        "packageStr": "SIMULATED:267581d93c9647a2ac7b16bdca157786"
       }
     },
     {
@@ -190,7 +190,7 @@
       "name": "GET /user/order/historyOrders",
       "ok": true,
       "detail": {
-        "total": 6,
+        "total": 9,
         "records": 5
       }
     },
@@ -227,7 +227,7 @@
       "name": "GET /admin/order/conditionSearch 查到刚下的订单",
       "ok": true,
       "detail": {
-        "total": 6,
+        "total": 12,
         "status": 2
       }
     },
@@ -264,7 +264,7 @@
       "ok": true,
       "detail": {
         "status": 5,
-        "deliveryTime": "2026-10-27 12:12:09"
+        "deliveryTime": "2026-10-31 16:47:46"
       }
     },
     {
@@ -272,11 +272,11 @@
       "name": "GET /admin/workspace/businessData",
       "ok": true,
       "detail": {
-        "turnover": 180,
-        "validOrderCount": 5,
-        "orderCompletionRate": 0.8333,
+        "turnover": 36,
+        "validOrderCount": 1,
+        "orderCompletionRate": 1,
         "unitPrice": 36,
-        "newUsers": 2
+        "newUsers": 0
       }
     },
     {
@@ -284,8 +284,8 @@
       "name": "GET /admin/report/turnoverStatistics",
       "ok": true,
       "detail": {
-        "dateList": "2026-10-27",
-        "turnoverList": "180.00"
+        "dateList": "2026-10-31",
+        "turnoverList": "36.00"
       }
     },
     {
@@ -332,7 +332,7 @@
       }
     }
   ],
-  "finishedAt": "2026-10-27T04:12:08.582Z",
+  "finishedAt": "2026-10-31T08:47:46.207Z",
   "summary": {
     "total": 37,
     "pass": 37,

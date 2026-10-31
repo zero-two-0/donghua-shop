@@ -1,0 +1,11 @@
+{
+  "baseUrl": "http://127.0.0.1:8080",
+  "startedAt": "2026-10-31T08:42:51.633Z",
+  "steps": [],
+  "finishedAt": "2026-10-31T08:42:51.913Z",
+  "summary": {
+    "total": 16,
+    "pass": 16,
+    "fail": 0
+  }
+}
