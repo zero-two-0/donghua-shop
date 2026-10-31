@@ -6,7 +6,7 @@
 param(
     [switch]$Restart,
     [int]$BackendPort = 8080,
-    [string]$AdminPassword = $Env:COURSE_ADMIN_PASSWORD
+    [string]$AdminPassword = $null
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,7 +59,8 @@ Write-Host '==> 2/4 后端 8080' -ForegroundColor Cyan
 if (Test-Port $BackendPort) {
     Write-Host "    已在运行，跳过（端口 $BackendPort）" -ForegroundColor DarkGray
 } else {
-    if (-not $AdminPassword) { throw '缺少管理员口令：请在 config\env.local.ps1 配置 COURSE_ADMIN_PASSWORD' }
+    if (-not $AdminPassword) { $AdminPassword = $Env:COURSE_ADMIN_PASSWORD }
+if (-not $AdminPassword) { throw '缺少管理员口令：请在 config\env.local.ps1 配置 COURSE_ADMIN_PASSWORD' }
 if (-not $Env:SKY_DB_APP_PASSWORD) { throw '缺少数据库口令：请在 config\env.local.ps1 配置 SKY_DB_APP_PASSWORD' }
 $jar = Join-Path $root 'code\backend\sky-server\target\sky-server-1.0-SNAPSHOT.jar'
     if (-not (Test-Path $jar)) {

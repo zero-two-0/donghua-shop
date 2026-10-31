@@ -19,6 +19,16 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    chunkSizeWarningLimit: 1500 // Element Plus 全量引入，主包约 1.3 MB；按需引入排入后续优化
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        // 把 UI 库与框架单独分包：业务代码改动时不必重新下载 ~1.2 MB 的 vendor 包
+        manualChunks: {
+          'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          axios: ['axios']
+        }
+      }
+    }
   }
 })

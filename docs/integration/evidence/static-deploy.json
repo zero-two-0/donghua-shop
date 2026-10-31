@@ -1,0 +1,117 @@
+{
+  "mode": "dist 静态托管 + 接口反代（与 deploy/nginx.conf 规则一致；本机未安装 Nginx）",
+  "userBase": "http://127.0.0.1:8081",
+  "adminBase": "http://127.0.0.1:8082",
+  "finishedAt": "2026-10-31T08:32:08.733Z",
+  "steps": [
+    {
+      "name": "用户端首页返回 index.html",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "bytes": 485
+      }
+    },
+    {
+      "name": "用户端入口 JS 可访问且 MIME 正确",
+      "ok": true,
+      "detail": {
+        "entry": "/assets/index-xq9dWOja.js",
+        "status": 200,
+        "kb": 380
+      }
+    },
+    {
+      "name": "用户端反代 /user/category/list",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": 1,
+        "count": 1
+      }
+    },
+    {
+      "name": "用户端反代菜品图 /assets/*.svg",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "type": "image/svg+xml"
+      }
+    },
+    {
+      "name": "用户端反代登录并取得令牌",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": 1
+      }
+    },
+    {
+      "name": "用户端带令牌调用受保护接口",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "items": 0
+      }
+    },
+    {
+      "name": "用户端未带令牌被拒（401）",
+      "ok": true,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "管理端首页返回 index.html",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "管理端入口 JS 可访问",
+      "ok": true,
+      "detail": {
+        "entry": "/assets/index-nOFFcj2f.js",
+        "kb": 9
+      }
+    },
+    {
+      "name": "管理端反代员工登录",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "code": 1,
+        "name": "课程管理员"
+      }
+    },
+    {
+      "name": "管理端带令牌调用受保护接口",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "shopStatus": 1
+      }
+    },
+    {
+      "name": "用户令牌访问管理端被拒",
+      "ok": true,
+      "detail": {
+        "status": 401,
+        "code": 0
+      }
+    },
+    {
+      "name": "未知路径回退到 index.html（SPA 托管）",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    }
+  ],
+  "summary": {
+    "total": 13,
+    "pass": 13,
+    "fail": 0
+  }
+}

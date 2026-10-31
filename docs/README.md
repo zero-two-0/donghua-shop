@@ -25,7 +25,11 @@
 | [integration/integration-record.md](integration/integration-record.md) | 组员侧真实联调记录（环境、7 个场景、结果） | 完成（单机，未双方在线） |
 | [integration/frontend-self-test.md](integration/frontend-self-test.md) | 构建、代理连通、37 项接口冒烟、未验证项 | 完成 |
 | [integration/runbook.md](integration/runbook.md) | 换机复现与常见问题 | 完成 |
-| [integration/evidence/api-smoke.json](integration/evidence/api-smoke.json) | 冒烟原始结果（逐项 ok/detail） | 证据 |
+| [integration/test-cases.md](integration/test-cases.md) | 第 7 周测试用例 30 条（主流程/异常/权限/前端交互），标注已执行与待执行 | 完成 |
+| [deployment/nginx-static.md](deployment/nginx-static.md) | 静态部署方案、/assets/ 前缀冲突（F-07）与 13 项实测 | 完成（Nginx 待第 8 周） |
+| [integration/evidence/api-smoke.json](integration/evidence/api-smoke.json) | 主流程冒烟原始结果（37 项逐项 ok/detail） | 证据 |
+| [integration/evidence/api-authz.json](integration/evidence/api-authz.json) | 越权/权限用例原始结果（22 项） | 证据 |
+| [integration/evidence/static-deploy.json](integration/evidence/static-deploy.json) | dist 静态托管验证原始结果（13 项） | 证据 |
 
 ## 3 组员早期草案（已归档，勿作依据）
 

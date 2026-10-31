@@ -6,7 +6,7 @@
 #   3) 两组 JWT 密钥固定为本地演示值，避免重启后令牌失效；生产/实机部署应改为环境注入。
 param(
     [int]$Port = 8080,
-    [string]$AdminPassword = $Env:COURSE_ADMIN_PASSWORD,
+    [string]$AdminPassword = $null,
     [switch]$Foreground
 )
 
@@ -14,6 +14,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'env.ps1')
 
+if (-not $AdminPassword) { $AdminPassword = $Env:COURSE_ADMIN_PASSWORD }
 if (-not $AdminPassword) { throw '缺少管理员口令：请在 config\env.local.ps1 配置 COURSE_ADMIN_PASSWORD（或传 -AdminPassword）' }
 if (-not $Env:SKY_DB_APP_PASSWORD) { throw '缺少数据库口令：请在 config\env.local.ps1 配置 SKY_DB_APP_PASSWORD' }
 

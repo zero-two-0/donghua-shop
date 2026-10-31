@@ -17,6 +17,7 @@
 | F-04 | 用户端缺“菜品详情”接口 | P2 | 契约/后端 | 前端用列表定位；建议增补 |
 | F-05 | 管理端菜品“口味”字段是 JSON 字符串，前端需自行解析/序列化 | P2 | 契约 | 前端已封装 `parseFlavorValues` |
 | F-06 | 员工无改密接口，编辑页只能改资料 | P3 | 契约 | 前端标注限制 |
+| F-07 | 前端构建产物与后端菜品图同用 `/assets/` 前缀，反代规则会误伤入口 JS | P1（部署） | 部署配置 / 后端路径 | 已在 Nginx 模板按扩展名区分；建议后端改名彻底解决 |
 
 ---
 
@@ -82,3 +83,13 @@
 | 营业状态双向生效 | 管理端 PUT 0 → 用户端 0；PUT 1 → 用户端 1 | smoke 最后两项 |
 | 状态闭环 2→3→4→5 | 用户端详情最终 `status=5`，含 `deliveryTime` | smoke「用户复查订单状态为 5」 |
 | 统计口径与订单一致 | 完成后 `turnover=36`、`validOrderCount=1` | smoke 统计组 |
+
+## F-07 前端产物与后端图片同用 `/assets/` 前缀
+
+- **场景**：`dist` 静态托管 + 同源反代（`deploy/nginx.conf`）
+- **现象**：按“`/assets/` 全部反代给后端”的写法部署后，`GET /assets/index-xxx.js` 返回 **404**，页面白屏。
+- **原因**：Vite 默认把入口与分包输出到 `/assets/`，后端菜品图也在 `/assets/`（`dish-1.svg`、`setmeal-1.svg`），二者同前缀冲突。
+- **实测**：修正前 `static-deploy.json` 中两项 FAIL（用户端、管理端入口 JS 均 404）；按扩展名区分（仅 `/assets/*.svg` 反代）后 13/13 通过。
+- **修复**：`deploy/nginx.conf` 改为 `location ~ ^/assets/.+\.svg$ { proxy_pass ...; }`，其余 `/assets/*` 走静态；`scripts/serve-dist.mjs` 同步修改。
+- **长期建议**：后端把课程图片换到 `/static-assets/` 或 OSS，前端 DB 里的 `image` 路径同步调整（涉及契约与数据，需组长确认）。
+- **证据**：`docs/integration/evidence/static-deploy.json`、`docs/deployment/nginx-static.md` 第 2 节。
