@@ -30,6 +30,7 @@
 | [integration/retest-record.md](integration/retest-record.md) | 缺陷复测记录 F-01~F-08（含未修复项与责任人） | 完成 |
 | [integration/pull-request-week5.md](integration/pull-request-week5.md) | 第 5~7 周 PR 描述（可直接粘贴到 GitHub） | 完成 |
 | [report/technical-report.md](report/technical-report.md) | 课程技术报告（需求/方案/数据库/契约/前后端/测试/缺陷/部署/分工/合规） | 完成（部署章节待第 8 周补） |
+| [deployment/deploy-acceptance.md](deployment/deploy-acceptance.md) | 部署步骤、环境变量、13 项验收清单（含待填列） | 完成（Nginx 已验证） |
 | [deployment/nginx-static.md](deployment/nginx-static.md) | 静态部署方案、/assets/ 前缀冲突（F-07）与 13 项实测 | 完成（Nginx 待第 8 周） |
 | [deployment/deploy-acceptance.md](deployment/deploy-acceptance.md) | 部署步骤、环境变量、13 项验收清单（含待填列） | 完成（待实测填写） |
 | [integration/evidence/api-smoke.json](integration/evidence/api-smoke.json) | 主流程冒烟原始结果（37 项逐项 ok/detail） | 证据 |

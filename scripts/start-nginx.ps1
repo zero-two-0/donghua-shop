@@ -58,7 +58,11 @@ $confPath = Join-Path $confDir 'nginx.conf'
 if ($Stop) {
     if (Test-Path $confPath) { & $nginxExe -p "$prefix\" -c $confPath -s quit 2>&1 | Out-Null }
     Start-Sleep -Seconds 2
+    # taskkill 在“没有进程”时返回非 0，别让它中断脚本
+    $prevEA = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     taskkill /F /IM nginx.exe 2>&1 | Out-Null
+    $ErrorActionPreference = $prevEA
     Write-Host ' 已停止 nginx' -ForegroundColor Yellow
     return
 }

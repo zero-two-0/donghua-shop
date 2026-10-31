@@ -1,22 +1,22 @@
 {
-  "mode": "真实 Nginx 1.31.8：8081/8082 静态托管 + /user、/admin、/assets/*.svg 反代 127.0.0.1:8080",
+  "mode": "真实 Nginx 1.31.8：8081/8082 静态托管 + 同源反代（重新部署后复测，含 iOS 安全区改动）",
   "userBase": "http://127.0.0.1:8081",
   "adminBase": "http://127.0.0.1:8082",
-  "finishedAt": "2026-10-31T09:23:13.443Z",
+  "finishedAt": "2026-10-31T09:32:43.987Z",
   "steps": [
     {
       "name": "用户端首页返回 index.html",
       "ok": true,
       "detail": {
         "status": 200,
-        "bytes": 485
+        "bytes": 505
       }
     },
     {
       "name": "用户端入口 JS 可访问且 MIME 正确",
       "ok": true,
       "detail": {
-        "entry": "/assets/index-BAYpMvtm.js",
+        "entry": "/assets/index-alnWFoxr.js",
         "status": 200,
         "kb": 380
       }
@@ -51,7 +51,7 @@
       "ok": true,
       "detail": {
         "status": 200,
-        "items": 0
+        "items": 1
       }
     },
     {
