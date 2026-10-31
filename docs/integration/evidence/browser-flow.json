@@ -1,0 +1,132 @@
+{
+  "mode": "Edge headless + CDP 真实点击（DOM click），真实后端",
+  "shots": [
+    "flow-01-after-login.png",
+    "flow-02-after-add.png",
+    "flow-03-cart-plus.png",
+    "flow-04-confirm.png",
+    "flow-05-pay-dialog.png",
+    "flow-06-order-detail.png",
+    "flow-07-admin-dashboard.png",
+    "flow-08-admin-accepted.png",
+    "flow-09-admin-completed.png",
+    "flow-10-admin-validation.png"
+  ],
+  "finishedAt": "2026-10-31T09:04:49.383Z",
+  "steps": [
+    {
+      "name": "点击身份与登录按钮后跳转首页并保存令牌",
+      "ok": true,
+      "detail": {
+        "pick": "clicked",
+        "enter": "clicked",
+        "hash": "#/home",
+        "hasToken": true
+      }
+    },
+    {
+      "name": "首页点击“加入购物车”后服务端数量 +1",
+      "ok": true,
+      "detail": {
+        "clickAdd": "clicked",
+        "countBefore": 1,
+        "countAfter": 2
+      }
+    },
+    {
+      "name": "购物车点击“+”后数量 +1（服务端为准）",
+      "ok": true,
+      "detail": {
+        "numBefore": 2,
+        "numAfter": 3
+      }
+    },
+    {
+      "name": "点击“去结算”进入确认订单页",
+      "ok": true,
+      "detail": {
+        "hash": "#/order/confirm"
+      }
+    },
+    {
+      "name": "点击“提交订单”弹出模拟支付对话框",
+      "ok": true,
+      "detail": {
+        "submit": "clicked"
+      }
+    },
+    {
+      "name": "点击“确认支付”后进入订单详情且状态为待接单",
+      "ok": true,
+      "detail": {
+        "payClick": "clicked",
+        "hash": "#/orders/17"
+      }
+    },
+    {
+      "name": "详情页可读出订单号（供管理端按行定位）",
+      "ok": true,
+      "detail": {
+        "orderId": "17",
+        "orderNumber": "59c16cb4558d4a249af06b6302090589"
+      }
+    },
+    {
+      "name": "管理端填口令点击登录进入工作台",
+      "ok": true,
+      "detail": {
+        "hash": "#/dashboard"
+      }
+    },
+    {
+      "name": "订单管理列表能按订单号定位到该订单",
+      "ok": true,
+      "detail": {
+        "orderNumber": "59c16cb4558d4a249af06b6302090589"
+      }
+    },
+    {
+      "name": "点击该行“接单”并确认后变为已接单",
+      "ok": true,
+      "detail": {
+        "accept": "clicked"
+      }
+    },
+    {
+      "name": "点击该行“开始派送”并确认后变为派送中",
+      "ok": true,
+      "detail": {
+        "deliver": "clicked"
+      }
+    },
+    {
+      "name": "点击“完成订单”后状态为 5（已完成）",
+      "ok": true,
+      "detail": {
+        "complete": "clicked",
+        "orderId": "17",
+        "status": 5
+      }
+    },
+    {
+      "name": "新增菜品空表单点保存出现校验提示（TC-30）",
+      "ok": true,
+      "detail": {
+        "openCreate": "clicked",
+        "validationShown": true
+      }
+    },
+    {
+      "name": "管理端未登录访问订单页被拦到登录页",
+      "ok": true,
+      "detail": {
+        "hash": "#/login?redirect=/orders"
+      }
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "pass": 14,
+    "fail": 0
+  }
+}

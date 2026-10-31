@@ -13,7 +13,7 @@
     "h5-06-home-320.png",
     "h5-07-cart-320.png"
   ],
-  "finishedAt": "2026-10-31T08:46:03.777Z",
+  "finishedAt": "2026-10-31T09:04:23.584Z",
   "steps": [
     {
       "name": "用户端登录页渲染（含演示身份）",
@@ -40,14 +40,14 @@
       "name": "订单列表页渲染（状态标签或空态）",
       "ok": true,
       "detail": {
-        "chars": 706
+        "chars": 1043
       }
     },
     {
       "name": "地址页渲染（新增按钮可见）",
       "ok": true,
       "detail": {
-        "chars": 549
+        "chars": 734
       }
     },
     {
@@ -100,14 +100,14 @@
       "name": "管理端工作台渲染经营数据",
       "ok": true,
       "detail": {
-        "chars": 321
+        "chars": 328
       }
     },
     {
       "name": "管理端订单管理渲染（含状态标签）",
       "ok": true,
       "detail": {
-        "chars": 1419
+        "chars": 1372
       }
     },
     {

@@ -163,10 +163,11 @@ code/frontend/
 | 异常与边界 | 16 | 全通过 |
 | 静态部署（dist + 反代） | 13 | 全通过 |
 | 浏览器渲染与响应式（Edge 无头） | 14 | 全通过 |
-| 合计 | **102** | **全通过** |
+| 浏览器点击流（加购→结算→支付→接单→派送→完成 + 表单校验） | 14 | 全通过 |
+| 合计 | **116** | **全通过** |
 | 组长后端自动化（H2） | 50 | 全通过 |
 
-详见 `docs/integration/test-report.md`；未执行项（浏览器点击流、真机、真实 Nginx、并发）已在报告中列明。
+详见 `docs/integration/test-report.md`；一键回归 `.\scripts\run-all-tests.ps1 -WithUI`。未执行项（真机/局域网、真实 Nginx、并发）已在报告中列明。
 
 ## 9 缺陷与改进
 
@@ -187,6 +188,7 @@ code/frontend/
 - 部署期：Nginx 静态托管两个 `dist`（8081/8082）+ 同源反代，配置见 `deploy/nginx.conf`。
 - 本机以 Node 静态服务实现同样规则，13 项通过（`evidence/static-deploy.json`）。
 - **未完成**：真实 Nginx 安装与 `nginx -t` 验收、真机/局域网访问、HTTPS。详见 `docs/deployment/deploy-acceptance.md`。
+- 前端交互已由 `scripts/browser-flow.mjs` 在真实浏览器中点击验证（14 项，含管理端接单/派送/完成与表单校验）。
 
 ## 11 分工与过程
 
@@ -210,7 +212,7 @@ code/frontend/
 ## 13 未完成与后续计划
 
 1. 真实 Nginx 部署与验收（第 8 周）；
-2. 浏览器点击流人工走查与真机验证；
+2. 真机/局域网人工验证（浏览器点击流已脚本化覆盖）；
 3. 契约 F-01~F-05 修订与回归；
 4. 双方评审会议、PR 评审记录；
 5. 若课程要求，补员工改密与菜品详情接口。

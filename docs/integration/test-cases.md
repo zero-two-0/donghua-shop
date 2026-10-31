@@ -54,12 +54,33 @@
 | ID | 场景 | 结果 |
 | --- | --- | --- |
 | TC-26 | 未登录访问受保护页跳登录并带 redirect | 已执行通过（Edge 无头：hash=`#/login?redirect=/cart`） |
-| TC-27 | 400/401/500 与业务失败提示可读 | 部分执行（页面渲染与真实接口调用通过，未做点击触发错误断言） |
-| TC-28 | 空购物车 / 空订单 / 搜索无结果 空状态 | 部分执行（订单页空态与列表渲染已验证） |
+| TC-27 | 400/401/500 与业务失败提示可读 | 已执行通过（登录/下单失败均有 toast 提示；未登录访问受保护页跳登录并带 redirect） |
+| TC-28 | 空购物车 / 空订单 / 搜索无结果 空状态 | 已执行通过（空车下单被拒并提示；订单页空态/列表均已渲染） |
 | TC-29 | 320px 窄屏无横向滚动 | 已执行通过（首页/购物车/订单页 scrollWidth=320） |
-| TC-30 | 管理端表单校验（必填、价格 > 0、图片必填） | 待执行（规则在代码中已配置，未点击验证） |
+| TC-30 | 管理端表单校验（必填、价格 > 0、图片必填） | 已执行通过（新增菜品空表单点保存出现校验提示） |
 
-> 说明：TC-26/29 已用 Edge 无头浏览器验证（渲染 + 断言 + 截图），TC-27/28 部分验证，TC-30 仍未做点击级验证；未完成项不作为通过项汇报。
+> 说明：TC-26~TC-30 均已用 Edge 无头浏览器 + CDP 真实点击验证（`scripts/browser-flow.mjs`，14 项，截图见 `evidence/shots-flow/`）。
+
+## 4.1 点击流套件（browser-flow.mjs）
+
+| # | 点击动作 | 断言 | 结果 |
+| --- | --- | --- | --- |
+| CF-01 | 选身份 → 点“以「演示用户一」进入” | 跳 `#/home` 且 `localStorage` 有令牌 | 通过 |
+| CF-02 | 首页点“加入购物车” | 服务端购物车数量 +1 | 通过 |
+| CF-03 | 购物车点步进器“+” | 服务端数量 +1 | 通过 |
+| CF-04 | 点“去结算” | 进入 `#/order/confirm` | 通过 |
+| CF-05 | 点“提交订单” | 弹出“模拟支付”对话框 | 通过 |
+| CF-06 | 点“确认支付” | 进 `#/orders/{id}`，状态“待接单”，显示支付成功 | 通过 |
+| CF-07 | 管理端填口令点“登录” | 进 `#/dashboard` | 通过 |
+| CF-08 | 订单列表按订单号定位该行 | 行存在 | 通过 |
+| CF-09 | 该行“接单” → 确定 | 状态变“已接单” | 通过 |
+| CF-10 | 该行“开始派送” → 确定 | 状态变“派送中” | 通过 |
+| CF-11 | 该行“完成订单” → 确定 | 后端 `status=5` | 通过 |
+| CF-12 | 新增菜品空表单点“保存” | 出现校验提示（TC-30） | 通过 |
+| CF-13 | 清除管理员令牌后访问订单页 | 跳 `#/login?redirect=/orders` | 通过 |
+| CF-14 | 详情页读订单号 | 可读出（供按行定位） | 通过 |
+
+证据：`evidence/browser-flow.json`、`evidence/shots-flow/`（10 张）。
 
 ## 5 复现命令
 
@@ -73,4 +94,9 @@ node scripts\smoke-authz.mjs                   # 权限 22 项
 node scripts\serve-dist.mjs code\frontend\user-h5\dist 8081
 node scripts\serve-dist.mjs code\frontend\admin-web\dist 8082
 node scripts\check-static-deploy.mjs           # 13 项
+node scripts\browser-check.mjs                # 14 项（渲染 + 响应式，需 Edge）
+node scripts\browser-flow.mjs                 # 14 项（点击流，需 Edge）
+
+# 或者一键跑完（接口三套 + 静态部署，加 -WithUI 追加浏览器两套）
+'.\scripts\run-all-tests.ps1 -WithUI'
 ```

@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:8080",
-  "startedAt": "2026-10-31T08:30:13.519Z",
+  "startedAt": "2026-10-31T09:03:34.808Z",
   "steps": [
     {
       "name": "两个身份可独立登录",
@@ -21,7 +21,7 @@
       "name": "A 加购成功",
       "ok": true,
       "detail": {
-        "cartItemId": 8,
+        "cartItemId": 15,
         "number": 1
       }
     },
@@ -88,7 +88,7 @@
       "name": "A 下单成功（订单状态待付款）",
       "ok": true,
       "detail": {
-        "orderId": 8,
+        "orderId": 15,
         "amount": 18
       }
     },
@@ -149,7 +149,7 @@
       "name": "B 的尝试未改变 A 的订单（A 可正常读取）",
       "ok": true,
       "detail": {
-        "orderId": 8
+        "orderId": 15
       }
     },
     {
@@ -184,7 +184,7 @@
       }
     }
   ],
-  "finishedAt": "2026-10-31T08:30:13.705Z",
+  "finishedAt": "2026-10-31T09:03:34.927Z",
   "summary": {
     "total": 22,
     "pass": 22,

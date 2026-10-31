@@ -26,7 +26,8 @@
 | 异常与边界（空车、停售、数量、非法状态、幂等、取消规则） | `scripts/smoke-exceptions.mjs` | 16 | 16 | 0 | `evidence/api-exceptions.json` |
 | 构建产物静态托管 + 反代 | `scripts/check-static-deploy.mjs` | 13 | 13 | 0 | `evidence/static-deploy.json` |
 | 浏览器渲染与响应式 | `scripts/browser-check.mjs` | 14 | 14 | 0 | `evidence/browser-check.json` + `evidence/shots/` |
-| **合计** | — | **102** | **102** | **0** | — |
+| 浏览器点击流（登录→下单→支付→接单→派送→完成） | `scripts/browser-flow.mjs` | 14 | 14 | 0 | `evidence/browser-flow.json` + `evidence/shots-flow/` |
+| **合计** | — | **116** | **116** | **0** | — |
 
 另：组长在 H2 + MockMvc 环境执行 50 项自动化测试（`docs/leader/week4/backend-self-test.md`），本次不重复计入。
 
@@ -47,6 +48,7 @@
 | 取消规则 | 待付款/待接单可取消，取消后 `status=6`、`payStatus=2`（模拟退款）；已取消再次取消被拒 |
 | 静态部署 | 首页、入口 JS、食材图、登录、受保护接口、SPA 回退全部正常 |
 | 响应式 | 390 / 1280 / 320 三种宽度均无横向滚动；320px 下分类名与“加入购物车”按钮完整可见 |
+| 点击流闭环 | 浏览器内点击完成“加购→结算→提交→支付→接单→派送→完成”，后端 `status=5`；表单空提交触发校验提示 |
 | 路由守卫 | 未登录访问 `#/cart` 跳转 `#/login?redirect=/cart` |
 
 ## 4 测试过程中发现并处理的问题
@@ -62,7 +64,6 @@
 
 | 项 | 原因 | 建议 |
 | --- | --- | --- |
-| 浏览器中的**交互操作**（点击加购、填表单、弹窗确认） | 无头浏览器的自动化只做到“渲染 + 断言 + 截图”，未做点击流 | 人工点一遍主流程，或用 Playwright 补点击级自动化 |
 | 真实手机 / 局域网访问 | 未做真机 | 第 8 周按部署环境验证 |
 | 真实 Nginx 验收 | 本机未安装 Nginx | 第 8 周安装后套 `deploy/nginx.conf` 验收 |
 | 并发与性能 | 不在课程范围 | 不做，报告中不声称 |
@@ -79,12 +80,15 @@ node scripts\smoke-api.mjs              # 37
 node scripts\smoke-authz.mjs            # 22
 node scripts\smoke-exceptions.mjs       # 16
 node scripts\check-static-deploy.mjs    # 13（需先起 serve-dist.mjs 8081/8082）
-node scripts\browser-check.mjs          # 14（需 Edge，会写证据与截图）
+node scripts\browser-check.mjs          # 14（渲染 + 响应式）
+node scripts\browser-flow.mjs           # 14（点击流，写 evidence/browser-flow.json）
+
+# 一键：.\scripts\run-all-tests.ps1 -WithUI
 ```
 
 ## 7 结论
 
-- 主流程、权限、异常、静态部署、浏览器渲染五类共 **102 项自动断言全部通过**，本地可一键复现。
+- 主流程、权限、异常、静态部署、浏览器渲染、浏览器点击流六类共 **116 项断言全部通过**，本地可一键复现（`scripts/run-all-tests.ps1`）。
 - 后端在**真实 MySQL** 上完成交易闭环，补上了组长报告中“真实库未验证”的空档；前端在真实浏览器中可渲染、可调用真实接口、窄屏不溢出。
 - 仍存在 6 处契约/实现差异（F-01~F-06，其中 F-01 已由前端适配）与 1 处部署前缀冲突（F-07 已在配置层修复），需组长确认后统一口径。
-- **未执行项**已如实列出，本报告不代表课程最终验收通过；第 8 周部署验收需另出记录。
+- 点击流已覆盖主流程闭环（含管理端接单/派送/完成）与表单校验；**仍未做**：真机/局域网访问、真实 Nginx 验收、并发性能。本报告不代表课程最终验收通过，第 8 周部署验收需另出记录。
