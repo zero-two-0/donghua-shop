@@ -1,0 +1,102 @@
+# Nginx config template for the Donghua online ordering project (Windows).
+# Rendered by scripts/start-nginx.ps1 with absolute paths; do not edit the tokens.
+#
+# Why two servers: the two frontends are separate SPAs. The backend (8080) has no CORS,
+# so /user, /admin and the dish images (/assets/*.svg) must be proxied same-origin.
+# NOTE: /assets/*.js is emitted by Vite into dist/assets, so only *.svg may be proxied,
+# otherwise the entry JS would 404 (see docs/integration/defects.md F-07).
+
+worker_processes  1;
+error_log  {{LOG_DIR}}/error.log warn;
+pid        {{LOG_DIR}}/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       {{MIME}};
+    default_type  application/octet-stream;
+    sendfile      on;
+    keepalive_timeout  65;
+    access_log  {{LOG_DIR}}/access.log;
+    client_max_body_size 10m;
+
+    # ---------------- user H5 ----------------
+    server {
+        listen       {{USER_PORT}};
+        server_name  localhost;
+
+        root   {{USER_ROOT}};
+        index  index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location ~ ^/(user|admin)/ {
+            proxy_pass         http://127.0.0.1:{{BACKEND_PORT}};
+            proxy_set_header   Host              $host;
+            proxy_set_header   X-Real-IP         $remote_addr;
+            proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header   Authorization     $http_authorization;
+        }
+
+        location ~ ^/assets/.+\.svg$ {
+            proxy_pass         http://127.0.0.1:{{BACKEND_PORT}};
+            proxy_set_header   Host  $host;
+        }
+
+        location = /openapi.yaml {
+            proxy_pass  http://127.0.0.1:{{BACKEND_PORT}}/openapi.yaml;
+        }
+
+        location = /doc.html {
+            proxy_pass  http://127.0.0.1:{{BACKEND_PORT}}/doc.html;
+        }
+
+        location ~* \.(js|css|woff2?|ttf|png|jpg|ico)$ {
+            expires 7d;
+            add_header Cache-Control "public, max-age=604800";
+        }
+    }
+
+    # ---------------- admin web ----------------
+    server {
+        listen       {{ADMIN_PORT}};
+        server_name  localhost;
+
+        root   {{ADMIN_ROOT}};
+        index  index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location ~ ^/(user|admin)/ {
+            proxy_pass         http://127.0.0.1:{{BACKEND_PORT}};
+            proxy_set_header   Host              $host;
+            proxy_set_header   X-Real-IP         $remote_addr;
+            proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header   Authorization     $http_authorization;
+        }
+
+        location ~ ^/assets/.+\.svg$ {
+            proxy_pass         http://127.0.0.1:{{BACKEND_PORT}};
+            proxy_set_header   Host  $host;
+        }
+
+        location = /openapi.yaml {
+            proxy_pass  http://127.0.0.1:{{BACKEND_PORT}}/openapi.yaml;
+        }
+
+        location = /doc.html {
+            proxy_pass  http://127.0.0.1:{{BACKEND_PORT}}/doc.html;
+        }
+
+        location ~* \.(js|css|woff2?|ttf|png|jpg|ico)$ {
+            expires 7d;
+            add_header Cache-Control "public, max-age=604800";
+        }
+    }
+}

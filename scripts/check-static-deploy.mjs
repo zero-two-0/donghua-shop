@@ -6,6 +6,8 @@ import fs from 'node:fs'
 const USER = process.env.STATIC_USER_BASE || 'http://127.0.0.1:8081'
 const ADMIN = process.env.STATIC_ADMIN_BASE || 'http://127.0.0.1:8082'
 const ADMIN_PWD = process.env.COURSE_ADMIN_PASSWORD
+const MODE = process.env.STATIC_MODE || 'dist 静态托管 + 接口反代（Node 等价实现，本机未安装 Nginx 时的替代）'
+const OUT = process.env.STATIC_OUT || 'docs/integration/evidence/static-deploy.json'
 
 const steps = []
 const rec = (name, ok, detail) => {
@@ -105,7 +107,7 @@ async function main() {
 
   const fail = steps.filter((s) => !s.ok).length
   const evidence = {
-    mode: 'dist 静态托管 + 接口反代（与 deploy/nginx.conf 规则一致；本机未安装 Nginx）',
+    mode: MODE,
     userBase: USER,
     adminBase: ADMIN,
     finishedAt: new Date().toISOString(),
@@ -113,9 +115,9 @@ async function main() {
     summary: { total: steps.length, pass: steps.length - fail, fail }
   }
   fs.mkdirSync('docs/integration/evidence', { recursive: true })
-  fs.writeFileSync('docs/integration/evidence/static-deploy.json', JSON.stringify(evidence, null, 2), 'utf8')
+  fs.writeFileSync(OUT, JSON.stringify(evidence, null, 2), 'utf8')
   console.log(`\n合计 ${steps.length} 项，通过 ${steps.length - fail}，失败 ${fail}`)
-  console.log('证据已写入 docs/integration/evidence/static-deploy.json')
+  console.log('证据已写入 ' + OUT)
   process.exit(fail ? 1 : 0)
 }
 

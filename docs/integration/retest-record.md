@@ -19,6 +19,7 @@
 | F-06 | 员工无改密接口 | P3 | 未修复 | 页面已标注限制 |
 | F-07 | 前端产物与后端图片同用 `/assets/` 前缀导致入口 JS 404 | P1（部署） | 配置层已修 | 通过（13/13），建议后端改名 |
 | F-08 | 320px 窄屏首页横向滚动 | P2（兼容） | 已修复 | 通过（scrollWidth=320） |
+| F-09 | Windows Nginx 读不了含中文路径 | P1（部署） | 已规避 | 通过（ASCII 中转目录，13/13 + 14/14） |
 
 ## 逐条复测
 
@@ -81,3 +82,10 @@
 | 决定是否增补 `/user/dish/{id}`（F-04）与员工改密接口（F-06） | 刘晟玺 | 待处理 |
 | 评估把菜品图迁到 `/static-assets/`（F-07 长期方案） | 刘晟玺 + 钱文博 | 待处理 |
 | 契约修订后按本文件原步骤复测并补关闭结论 | 钱文博 | 待触发 |
+
+### F-09 Windows Nginx 与非 ASCII 路径
+
+- **复测动作**：在真实 Nginx 1.31.8 上先直接指向 `OneDrive\文档\...\dist`（失败），再用 `scripts\start-nginx.ps1` 复制到 `C:\nginx-site` 后重启。
+- **实际结果**：第一次 `nginx -t` 报 1113 并退出；第二次 `nginx -t` 输出 `test is successful`，8081/8082 正常监听，13 项资源/接口检查与 14 项浏览器检查全部通过。
+- **结论**：已规避；部署到 Linux 或 ASCII 路径时无需该中转。
+- **证据**：`docs/integration/evidence/nginx-deploy.json`、`docs/deployment/evidence/nginx-browser.json`。

@@ -69,6 +69,17 @@
 | 并发与性能 | 不在课程范围 | 不做，报告中不声称 |
 | 员工改密、图片上传 | 契约未提供接口（F-06 等） | 待组长确认是否需要 |
 
+## 5.1 部署环境复测（真实 Nginx）
+
+同一套断言在真实 Nginx 1.31.8（8081/8082 静态托管 + 同源反代）上复跑：
+
+| 复测 | 项数 | 结果 | 证据 |
+| --- | ---: | --- | --- |
+| 资源与接口（check-static-deploy.mjs，指向 Nginx） | 13 | 13/13 | `evidence/nginx-deploy.json` |
+| 浏览器渲染与响应式（browser-check.mjs，指向 Nginx） | 14 | 14/14 | `docs/deployment/evidence/nginx-browser.json`、`nginx-shots/` |
+
+累计断言执行：功能 116 项 + 部署复测 27 项 = **143 次**，全部通过。部署期的坑（非 ASCII 路径、多实例）记录为 F-09。
+
 ## 6 复现命令
 
 ```powershell

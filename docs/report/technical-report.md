@@ -9,7 +9,7 @@
 | 版本 | 代码随仓库提交演进；本文对应 Git `09459e4` 之后的工作区版本 |
 | 编写 | 钱文博（前端、测试、部署与协作章节）；后端章节依据组长 `docs/leader/week4/backend-implementation.md` 整理 |
 
-> 写作原则：只写本组实际实现并验证过的内容；参考工程（苍穹外卖）的能力单独标注，不写成本组原创；未执行项（浏览器点击流、真实 Nginx、真机）单列在第 10 节。
+> 写作原则：只写本组实际实现并验证过的内容；参考工程（苍穹外卖）的能力单独标注，不写成本组原创；未执行项（真机/局域网、HTTPS、并发）单列在第 10 节与第 13 节。
 
 ## 1 项目概述
 
@@ -181,13 +181,15 @@ code/frontend/
 | F-06 | 员工无改密接口 | 页面标注限制 |
 | F-07 | 前端产物与后端图片同用 `/assets/` 前缀致入口 JS 404 | 反代按扩展名区分；建议后端改名 |
 | F-08 | 320px 窄屏首页横向滚动 | 已修（侧栏/缩略图收缩 + 允许换行） |
+| F-09 | Windows 版 Nginx 无法读取含中文的项目路径 | 已规避（dist 复制到 ASCII 中转目录） |
 
 ## 10 部署
 
 - 开发期：后端 8080 + Vite 5173/5174（代理 `/user`、`/admin`、`/assets`）。
 - 部署期：Nginx 静态托管两个 `dist`（8081/8082）+ 同源反代，配置见 `deploy/nginx.conf`。
-- 本机以 Node 静态服务实现同样规则，13 项通过（`evidence/static-deploy.json`）。
-- **未完成**：真实 Nginx 安装与 `nginx -t` 验收、真机/局域网访问、HTTPS。详见 `docs/deployment/deploy-acceptance.md`。
+- 已在**真实 Nginx 1.31.8** 上完成验收（2026-10-31）：`nginx -t` 通过，部署复测 13/13（资源与接口）+ 14/14（浏览器渲染与响应式），证据 `evidence/nginx-deploy.json`、`deployment/evidence/nginx-browser.json`。
+- 部署期两个真实问题：Windows 版 nginx 读不了含中文路径（F-09，改用 ASCII 中转目录 `C:\nginx-site`）；双击 `nginx.exe` 会启动安装目录默认配置并残留多实例（统一用 `scripts\start-nginx.ps1`）。
+- **未完成**：真机/局域网访问、HTTPS。详见 `docs/deployment/deploy-acceptance.md`。
 - 前端交互已由 `scripts/browser-flow.mjs` 在真实浏览器中点击验证（14 项，含管理端接单/派送/完成与表单校验）。
 
 ## 11 分工与过程
@@ -211,8 +213,8 @@ code/frontend/
 
 ## 13 未完成与后续计划
 
-1. 真实 Nginx 部署与验收（第 8 周）；
-2. 真机/局域网人工验证（浏览器点击流已脚本化覆盖）；
+1. 真机/局域网验证与 HTTPS（真实 Nginx 已在 10-31 完成验收）；
+2. 若课程要求，再补一次他人操作下的验收录像；
 3. 契约 F-01~F-05 修订与回归；
 4. 双方评审会议、PR 评审记录；
 5. 若课程要求，补员工改密与菜品详情接口。

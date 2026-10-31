@@ -19,6 +19,7 @@
 | F-06 | 员工无改密接口，编辑页只能改资料 | P3 | 契约 | 前端标注限制 |
 | F-07 | 前端构建产物与后端菜品图同用 `/assets/` 前缀，反代规则会误伤入口 JS | P1（部署） | 部署配置 / 后端路径 | 已在 Nginx 模板按扩展名区分；建议后端改名彻底解决 |
 | F-08 | 320px 窄屏首页横向滚动，加入购物车按钮被裁切 | P2（兼容） | 前端 | 已修复并复测（scrollWidth=320） |
+| F-09 | Windows 版 Nginx 无法读取含中文的路径（部署目录在 OneDrive\文档 下） | P1（部署） | 部署配置 | 已规避：dist 复制到 ASCII 中转目录 |
 
 ---
 
@@ -94,3 +95,12 @@
 - **修复**：`deploy/nginx.conf` 改为 `location ~ ^/assets/.+\.svg$ { proxy_pass ...; }`，其余 `/assets/*` 走静态；`scripts/serve-dist.mjs` 同步修改。
 - **长期建议**：后端把课程图片换到 `/static-assets/` 或 OSS，前端 DB 里的 `image` 路径同步调整（涉及契约与数据，需组长确认）。
 - **证据**：`docs/integration/evidence/static-deploy.json`、`docs/deployment/nginx-static.md` 第 2 节。
+
+## F-09 Windows Nginx 不支持非 ASCII 路径
+
+- **现象**：`nginx -t` 报 `CreateFile() "... \OneDrive\文档\...\logs/error.log" failed (1113: No mapping for the Unicode character exists in the target multi-byte code page)`，进程直接退出。
+- **原因**：Windows 版 nginx 通过 ANSI 接口打开文件与写日志，路径含中文（`文档`）时无法映射到当前代码页。
+- **影响范围**：配置路径、日志路径、静态 `root`、`access_log` 全都受影响；Linux 无此问题。
+- **处理**：`scripts/start-nginx.ps1` 检测项目路径是否纯 ASCII，若不是则把两端 `dist` `robocopy` 到 `C:\nginx-site`（默认可改 `-StageDir`），配置与日志也放该目录；已在真实 Nginx 上复测 13/13 + 14/14。
+- **长期建议**：部署机把站点放在 ASCII 路径（如 `/var/www/...`、`C:\sites\...`），或把项目移出 `OneDrive\文档`。
+- **证据**：`docs/deployment/deploy-acceptance.md` 第 7 节、`docs/integration/evidence/nginx-deploy.json`。

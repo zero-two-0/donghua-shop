@@ -74,7 +74,7 @@ node scripts\smoke-api.mjs
 | 页面覆盖 | 用户端 12 个页面路由、管理端 7 个页面（含新增员工管理与营业开关） | [page-api-map.md](docs/integration/page-api-map.md) |
 | 真实联调 | 登录→浏览→加购→地址→下单→模拟支付→接单→派送→完成→统计 全链路 | [integration-record.md](docs/integration/integration-record.md)、[api-smoke.json](docs/integration/evidence/api-smoke.json) |
 | 权限与越权 | 两身份交叉访问地址/购物车/订单/支付/取消，22 项全部被后端拒绝且数据未变 | [api-authz.json](docs/integration/evidence/api-authz.json) |
-| 静态部署 | dist 脱离 dev server 独立运行（静态托管 + 接口反代），13 项通过 | [nginx-static.md](docs/deployment/nginx-static.md)、[static-deploy.json](docs/integration/evidence/static-deploy.json) |
+| 静态部署 | dist 脱离 dev server 独立运行；**已在真实 Nginx 1.31.8 上验收**（13 项接口/资源 + 14 项浏览器） | [deploy-acceptance.md](docs/deployment/deploy-acceptance.md)、[nginx-deploy.json](docs/integration/evidence/nginx-deploy.json) |
 | 测试用例 | 30 条用例（主流程/异常/权限/前端交互），标注已执行与待执行 | [test-cases.md](docs/integration/test-cases.md) |
 | 测试报告 | 五套件 102 项断言全通过；未执行项单列 | [test-report.md](docs/integration/test-report.md) |
 | 复测记录 | F-01~F-08 逐条复测方式与结论（含未修复项） | [retest-record.md](docs/integration/retest-record.md) |
@@ -116,3 +116,16 @@ admin-web build              ✓ 25 文件 / 1.64 MB；已分包：入口 9.7 KB
 - 契约以 `docs/leader/week3/openapi.yaml` 为唯一来源；前端改动若涉及字段/路径，先改契约再改实现。
 - 接口变更需同时更新：OpenAPI、前端字段使用点、`docs/integration/page-api-map.md`、缺陷/联调记录。
 - 提交前本地验证：`.\scripts\run-all-tests.ps1`（接口三套 + 静态部署；加 `-WithUI` 再跑两套浏览器验证），或 `build-frontend.ps1`。
+
+## 生产式运行（真实 Nginx，本机已验证）
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+. .\scripts\env.ps1
+.\scripts\run-backend.ps1                                  # 后端 8080
+.\scripts\start-nginx.ps1 -NginxHome D:\NLP_SVM_Project\nginx-1.31.8
+# 用户端 http://127.0.0.1:8081    管理端 http://127.0.0.1:8082（admin / 本地口令）
+.\scripts\start-nginx.ps1 -Stop                            # 停止
+```
+
+> Windows 版 nginx 读不了含中文的路径：脚本会自动把 `dist` 复制到 `C:\nginx-site` 再提供服务（缺陷 F-09）。不要直接双击 `nginx.exe`——那是安装目录的默认首页配置。

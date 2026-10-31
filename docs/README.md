@@ -39,6 +39,8 @@
 | [integration/evidence/browser-check.json](integration/evidence/browser-check.json) | 浏览器渲染与响应式原始结果（14 项） | 证据 |
 | [integration/evidence/browser-flow.json](integration/evidence/browser-flow.json) | 浏览器点击流原始结果（14 项） | 证据 |
 | `integration/evidence/shots-flow/` | 点击流截图 10 张（登录→下单→支付→接单→派送→完成、表单校验） | 证据 |
+| [deployment/evidence/nginx-browser.json](deployment/evidence/nginx-browser.json) | 真实 Nginx 部署下的浏览器验证结果（14 项） | 证据 |
+| `deployment/evidence/nginx-shots/` | 经 Nginx 渲染的截图 | 证据 |
 | `integration/evidence/shots/` | Edge 无头截图（H5 登录/首页/购物车/订单/320px/1280px + 管理端 4 页） | 证据 |
 | [integration/evidence/api-exceptions.json](integration/evidence/api-exceptions.json) | 异常与边界用例原始结果（16 项） | 证据 |
 | [integration/evidence/browser-check.json](integration/evidence/browser-check.json) | 浏览器渲染与响应式原始结果（14 项） | 证据 |

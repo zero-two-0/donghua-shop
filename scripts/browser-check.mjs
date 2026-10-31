@@ -7,11 +7,12 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 
 const EDGE = process.env.EDGE_PATH || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
-const USER_BASE = 'http://127.0.0.1:5173'
-const ADMIN_BASE = 'http://127.0.0.1:5174'
+const USER_BASE = process.env.USER_BASE || 'http://127.0.0.1:5173'
+const ADMIN_BASE = process.env.ADMIN_BASE || 'http://127.0.0.1:5174'
 const API = 'http://127.0.0.1:8080'
 const DEBUG_PORT = 9222
-const SHOTS = 'docs/integration/evidence/shots'
+const SHOTS = process.env.SHOTS_DIR || 'docs/integration/evidence/shots'
+const OUT = process.env.BROWSER_OUT || 'docs/integration/evidence/browser-check.json'
 const ADMIN_PWD = process.env.COURSE_ADMIN_PASSWORD
 
 const steps = []
@@ -211,13 +212,13 @@ async function main() {
 
     const fail = steps.filter((s) => !s.ok).length
     const evidence = {
-      mode: 'Edge headless + CDP（真实浏览器渲染，注入真实登录态）',
+      mode: process.env.BROWSER_MODE || 'Edge headless + CDP（真实浏览器渲染，注入真实登录态）',
       shots: fs.readdirSync(SHOTS).sort(),
       finishedAt: new Date().toISOString(),
       steps,
       summary: { total: steps.length, pass: steps.length - fail, fail }
     }
-    fs.writeFileSync('docs/integration/evidence/browser-check.json', JSON.stringify(evidence, null, 2), 'utf8')
+    fs.writeFileSync(OUT, JSON.stringify(evidence, null, 2), 'utf8')
     console.log(`\n合计 ${steps.length} 项，通过 ${steps.length - fail}，失败 ${fail}`)
     console.log('截图目录：' + SHOTS)
     process.exit(fail ? 1 : 0)
