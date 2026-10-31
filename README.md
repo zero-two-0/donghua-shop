@@ -107,7 +107,7 @@ admin-web build              ✓ 25 文件 / 1.64 MB；已分包：入口 9.7 KB
 - 整合材料（组员）：[页面-接口对应表](docs/integration/page-api-map.md)｜[契约差异](docs/integration/contract-diff.md)｜[缺陷台账](docs/integration/defects.md)｜[联调记录](docs/integration/integration-record.md)｜[测试用例](docs/integration/test-cases.md)｜[前端自测](docs/integration/frontend-self-test.md)｜[运行手册](docs/integration/runbook.md)｜[静态部署](docs/deployment/nginx-static.md)
 - 报告与验收：[课程技术报告](docs/report/technical-report.md)｜[测试报告](docs/integration/test-report.md)｜[复测记录](docs/integration/retest-record.md)｜[部署与验收说明](docs/deployment/deploy-acceptance.md)
 - PR 说明：[第 5~7 周 PR 描述](docs/integration/pull-request-week5.md)
-- 周报：[个人（10.19—10.26 整合版）](docs/meetings/个人工作周报_钱文博_2026-10-19至10-26.docx)｜[小组（第 1~4 周）](docs/meetings/小组工作周报_第1-4周.docx)
+- 周报：[个人（10.19—10.26 整合版）](docs/meetings/个人工作周报_钱文博_2026-10-19至10-26.docx)｜[个人（10.27—10.31）](docs/meetings/个人工作周报_钱文博_2026-10-27至10-31.docx)｜[小组（第 1~4 周）](docs/meetings/小组工作周报_第1-4周.docx)｜[小组（第 5 周）](docs/meetings/小组工作周报_第5周.docx)
 - 部署配置：[deploy/nginx.conf](deploy/nginx.conf)
 - 早期草案（已归档）：`docs/requirements`、`docs/architecture`、`docs/database`、`docs/api`、`docs/quality`、`docs/testing`、`docs/meetings`（除周报外的会议/评审稿）
 
