@@ -8,11 +8,11 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 
 const EDGE = process.env.EDGE_PATH || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
-const USER = 'http://127.0.0.1:5173'
-const ADMIN = 'http://127.0.0.1:5174'
+const USER = process.env.USER_BASE || 'http://127.0.0.1:5173'
+const ADMIN = process.env.ADMIN_BASE || 'http://127.0.0.1:5174'
 const API = 'http://127.0.0.1:8080'
 const DEBUG_PORT = Number(process.env.EDGE_DEBUG_PORT || 9223)
-const SHOTS = 'docs/integration/evidence/shots-flow'
+const SHOTS = process.env.SHOTS_DIR || 'docs/integration/evidence/shots-flow'
 const PWD = process.env.COURSE_ADMIN_PASSWORD
 
 const steps = []
@@ -169,8 +169,8 @@ async function main() {
 
     // ---------- 1. 登录按钮点击 ----------
     await goto(cdp, USER + '/#/login')
-    const pick = await clickText(cdp, '演示用户一', '.identity')
-    const enter = await clickText(cdp, '进入')
+    const pick = await clickText(cdp, '学生账号一', '.account')
+    const enter = await clickText(cdp, '进入食堂')
     const loggedIn = await waitFor(cdp, `location.hash.includes('/home')`, 9000, '登录后跳首页')
     const token = await evalJs(cdp, `localStorage.getItem('sky_user_token')`)
     rec('点击身份与登录按钮后跳转首页并保存令牌', pick === 'clicked' && enter === 'clicked' && loggedIn && !!token,
@@ -183,7 +183,8 @@ async function main() {
     await goto(cdp, USER + '/#/home')
     const cartBefore = (await apiJson('/user/shoppingCart/list', auth)).data || []
     const countBefore = cartBefore.reduce((s, i) => s + i.number, 0)
-    const clickAdd = await clickText(cdp, '加入购物车')
+    const clickAdd = await clickNth(cdp, '.add-btn', 0)
+  if (clickAdd !== 'clicked') { await clickText(cdp, '加入购物车') }
     await sleep(1500)
     const cartAfter = (await apiJson('/user/shoppingCart/list', auth)).data || []
     const countAfter = cartAfter.reduce((s, i) => s + i.number, 0)
@@ -200,6 +201,20 @@ async function main() {
     rec('购物车点击“+”后数量 +1（服务端为准）', numAfter === numBefore + 1, { numBefore, numAfter })
     await shot(cdp, 'flow-03-cart-plus.png')
 
+    // ---------- 3.5 保证有收货地址 ----------
+    let addrList = (await apiJson('/user/addressBook/list', auth)).data || []
+    if (!addrList.length) {
+      await apiJson('/user/addressBook', {
+        method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
+        body: JSON.stringify({ consignee: '李雨桐', phone: '13700001234', sex: '0', provinceName: '上海市', cityName: '上海市', districtName: '松江区', detail: '东华大学 3 号宿舍楼 412', isDefault: 1 })
+      })
+      addrList = (await apiJson('/user/addressBook/list', auth)).data || []
+      await goto(cdp, USER + '/#/cart')
+      await sleep(800)
+      await clickText(cdp, '去结算')
+      await waitFor(cdp, `location.hash.includes('/order/confirm')`, 6000, '跳转确认订单')
+    }
+
     // ---------- 4. 去结算 ----------
     const goPay = await clickText(cdp, '去结算')
     const onConfirm = await waitFor(cdp, `location.hash.includes('/order/confirm')`, 6000, '跳转确认订单')
@@ -208,12 +223,13 @@ async function main() {
 
     // ---------- 5. 提交订单 + 确认支付 ----------
     const submit = await clickText(cdp, '提交订单')
-    const dialogShown = await waitFor(cdp, `document.body.innerText.includes('模拟支付')`, 9000, '支付弹窗')
+    const dialogShown = await waitFor(cdp, `!!document.querySelector('.van-dialog__confirm')`, 9000, '支付弹窗')
     rec('点击“提交订单”弹出模拟支付对话框', submit === 'clicked' && dialogShown, { submit })
     await shot(cdp, 'flow-05-pay-dialog.png')
 
-    const payClick = await clickText(cdp, '确认支付', '.van-dialog__confirm, .van-dialog button, button')
+    const payClick = await clickText(cdp, '立即支付', '.van-dialog__confirm')
     const detailShown = await waitFor(cdp, `/#\\/orders\\/\\d+/.test(location.hash)`, 12000, '支付后跳订单详情')
+    await waitFor(cdp, `document.body.innerText.includes('待接单')`, 12000, '订单详情渲染待接单')
     const detailText = await bodyText(cdp)
     rec('点击“确认支付”后进入订单详情且状态为待接单',
       payClick === 'clicked' && detailShown && detailText.includes('待接单'),
@@ -221,7 +237,8 @@ async function main() {
     await shot(cdp, 'flow-06-order-detail.png')
 
     const orderId = (await hash(cdp)).match(/(\d+)/)?.[1]
-    const orderNumber = (detailText.match(/订单号\s*([0-9a-zA-Z]+)/) || [])[1] || ''
+    const orderNumber = (detailText.match(/订单号\s*[:：]?\s*([0-9a-zA-Z]{16,})/) || [])[1]
+      || (detailText.match(/([0-9a-f]{32})/) || [])[1] || ''
     rec('详情页可读出订单号（供管理端按行定位）', !!orderNumber, { orderId, orderNumber })
 
     // ---------- 6. 管理端登录 ----------

@@ -57,6 +57,15 @@ export function parseFlavorValues(value) {
   return text.split(',').map((v) => v.trim()).filter(Boolean)
 }
 
+/** 后端返回的订单地址形如“上海市上海市松江区…”，去掉省市重名与多余空白 */
+export function tidyAddress(text) {
+  if (!text) return ''
+  let s = String(text).trim()
+  const dup = s.match(/^(.{2,8}?(?:市|省|自治区))\1/)
+  if (dup) s = s.slice(dup[1].length)
+  return s
+}
+
 export function formatDateTime(value) {
   if (!value) return '-'
   return String(value).replace('T', ' ').slice(0, 19)

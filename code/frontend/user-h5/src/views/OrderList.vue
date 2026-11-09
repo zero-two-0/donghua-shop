@@ -1,46 +1,67 @@
 <template>
-  <div class="page">
+  <div class="page orders-page">
     <van-nav-bar title="我的订单" fixed placeholder />
 
-    <van-tabs v-model:active="active" sticky @change="load">
+    <van-tabs v-model:active="active" sticky shrink @change="load">
       <van-tab v-for="t in tabs" :key="t.name" :title="t.title" :name="t.name" />
     </van-tabs>
 
-    <van-loading v-if="loading" class="loading" vertical>加载中...</van-loading>
-    <van-empty v-else-if="!orders.length" description="暂无订单">
+    <div v-if="loading" class="skeleton-wrap">
+      <van-skeleton title :row="3" />
+      <van-skeleton title :row="3" style="margin-top: 18px" />
+    </div>
+
+    <van-empty v-else-if="!orders.length" image="search" description="还没有相关订单">
       <van-button round type="primary" size="small" to="/home">去点餐</van-button>
     </van-empty>
 
-    <div v-else class="list">
-      <div v-for="o in orders" :key="o.id" class="order-card" @click="goDetail(o)">
-        <div class="card-head">
-          <span class="muted">{{ formatDateTime(o.orderTime) }}</span>
-          <span :class="['status', 'status-' + o.status]">{{ orderStatusText(o.status) }}</span>
-        </div>
-        <div class="card-body">{{ orderSummaryText(o) }}</div>
-        <div class="card-foot">
-          <span class="muted ellipsis">{{ o.consignee }} · {{ o.address }}</span>
-          <span class="price">{{ money(o.amount) }}</span>
-        </div>
-        <div class="card-actions">
-          <van-button v-if="o.status === 1" size="small" type="primary" @click.stop="pay(o)">去支付</van-button>
-          <van-button v-if="o.status === 1" size="small" plain @click.stop="cancel(o)">取消订单</van-button>
-          <van-button v-if="o.status === 5 || o.status === 6" size="small" plain type="primary" @click.stop="repeat(o)">再来一单</van-button>
-          <van-button v-if="o.status === 2 || o.status === 3" size="small" plain @click.stop="remind(o)">催单</van-button>
-        </div>
+    <van-pull-refresh v-else v-model="refreshing" @refresh="onRefresh">
+      <div class="list">
+        <article v-for="o in orders" :key="o.id" class="order-card" @click="goDetail(o)">
+          <header class="card-head">
+            <span class="time">{{ formatDateTime(o.orderTime) }}</span>
+            <span :class="['status', 'status-' + o.status]">{{ orderStatusText(o.status) }}</span>
+          </header>
+
+          <div class="card-body">
+            <span class="summary">{{ orderSummaryText(o) }}</span>
+            <span class="amount price">{{ money(o.amount) }}</span>
+          </div>
+
+          <div class="meta">
+            <van-icon name="location-o" />
+            <span class="ellipsis">{{ o.consignee }} · {{ tidyAddress(o.address) }}</span>
+          </div>
+
+          <footer v-if="hasAction(o)" class="card-actions">
+            <van-button v-if="o.status === 2 || o.status === 3" size="small" plain round @click.stop="remind(o)">
+              催单
+            </van-button>
+            <van-button v-if="o.status === 5 || o.status === 6" size="small" plain round @click.stop="repeat(o)">
+              再来一单
+            </van-button>
+            <van-button v-if="o.status === 1" size="small" plain round @click.stop="cancel(o)">
+              取消订单
+            </van-button>
+            <van-button v-if="o.status === 1" size="small" type="primary" round @click.stop="pay(o)">
+              去支付
+            </van-button>
+          </footer>
+        </article>
       </div>
-    </div>
+    </van-pull-refresh>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
 import { orderApi } from '../api/user'
-import { formatDateTime, money, orderStatusText, orderSummaryText } from '../utils/format'
+import { formatDateTime, money, orderStatusText, orderSummaryText, tidyAddress } from '../utils/format'
 
 const router = useRouter()
+const route = useRoute()
 const tabs = [
   { title: '全部', name: '' },
   { title: '待付款', name: '1' },
@@ -49,12 +70,30 @@ const tabs = [
   { title: '已完成', name: '5' }
 ]
 
-const active = ref('')
+const initialStatus = typeof route.query.status === 'string' ? route.query.status : ''
+const active = ref(initialStatus)
 const orders = ref([])
 const loading = ref(false)
+const refreshing = ref(false)
+
+// 从个人中心的“待付款 / 进行中 / 已完成”进入时，直接定位到对应筛选
+watch(
+  () => route.query.status,
+  (v) => {
+    const next = typeof v === 'string' ? v : ''
+    if (next !== active.value) {
+      active.value = next
+      load()
+    }
+  }
+)
+
+function hasAction(o) {
+  return [1, 2, 3, 5, 6].includes(o.status)
+}
 
 async function load() {
-  loading.value = true
+  loading.value = !refreshing.value
   try {
     const page = await orderApi.history({
       page: 1,
@@ -66,7 +105,12 @@ async function load() {
     showToast(e.message || '加载失败')
   } finally {
     loading.value = false
+    refreshing.value = false
   }
+}
+
+function onRefresh() {
+  load()
 }
 
 function goDetail(order) {
@@ -111,7 +155,7 @@ async function repeat(order) {
 async function remind(order) {
   try {
     await orderApi.remind(order.id)
-    showToast({ type: 'success', message: '已催单，请等待商家处理' })
+    showToast({ type: 'success', message: '已催单，请稍候' })
   } catch (e) {
     showToast(e.message || '催单失败')
   }
@@ -121,24 +165,107 @@ onMounted(load)
 </script>
 
 <style scoped>
-.list { padding: 12px; }
+.orders-page {
+  background: var(--bg);
+}
+
+.list {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 62vh;
+}
+
 .order-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s ease;
 }
-.card-head { display: flex; justify-content: space-between; align-items: center; }
-.status { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #f2f3f5; color: #646566; }
-.status-1 { background: #fff1e6; color: #ee7a24; }
-.status-2, .status-3 { background: #e8f3ff; color: #1989fa; }
-.status-4 { background: #e8fff0; color: #07c160; }
-.status-5 { background: #f2f3f5; color: #969799; }
-.status-6 { background: #fee; color: #ee0a24; }
-.card-body { margin: 8px 0; font-size: 15px; font-weight: 600; }
-.card-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.ellipsis { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
-.loading { padding: 40px 0; }
+
+.order-card:active {
+  transform: scale(0.995);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.status {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f2f3f5;
+  color: #646566;
+  font-weight: 500;
+}
+
+.status-1 { background: #fff3e6; color: #d97706; }
+.status-2, .status-3 { background: #e8f1ff; color: #2563eb; }
+.status-4 { background: #e9f9ef; color: #0f9d58; }
+.status-5 { background: #f2f3f5; color: #86909c; }
+.status-6 { background: #fdecec; color: #d93026; }
+
+.card-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0 8px;
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amount {
+  font-size: 16px;
+  flex: none;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.ellipsis {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-actions {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 360px) {
+  .summary {
+    font-size: 14px;
+  }
+}
 </style>

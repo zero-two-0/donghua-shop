@@ -1,4 +1,4 @@
-﻿# 按组长第 2 周 schema.sql 初始化课程库 takeout_course（可重复执行：会重建该库，不动其他库）
+# 按组长第 2 周 schema.sql 初始化课程库 takeout_course（可重复执行：会重建该库，不动其他库）
 # 前置：config\env.local.ps1 中配置 DH_DB_ROOT_PASSWORD
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -28,6 +28,21 @@ function Invoke-Sql([string]$sql, [string]$label) {
 
 Invoke-Sql "DROP DATABASE IF EXISTS ``$dbName``; CREATE DATABASE ``$dbName`` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" '重建空库 takeout_course'
 Invoke-Sql ("USE ``$dbName``;`r`n" + [System.IO.File]::ReadAllText($schema)) '执行组长 schema.sql（建表 + 种子数据）'
+
+# 演示数据文案本地化：组长 schema 里的种子描述是课程语气（"课程演示菜品，可替换为复用素材"），
+# 这里统一改为营业文案，保证用户端/管理端看到的是产品化内容。
+$demoCopy = @"
+USE ``$dbName``;
+UPDATE dish SET description = '鸡丁配花生与干辣椒同炒，咸甜微辣，很下饭。' WHERE id = 1;
+UPDATE dish SET description = '番茄与嫩滑蛋块同炒，酸甜开胃。' WHERE id = 2;
+UPDATE setmeal SET name = '双人套餐', description = '宫保鸡丁 + 番茄炒蛋，配两份米饭与例汤。' WHERE id = 1;
+UPDATE category SET name = '热菜' WHERE id = 1;
+UPDATE category SET name = '套餐' WHERE id = 2;
+UPDATE user SET name = '陈子涵' WHERE id = 1;
+UPDATE user SET name = '林书瑶' WHERE id = 2;
+UPDATE employee SET name = '张明' WHERE username = 'admin';
+"@
+Invoke-Sql $demoCopy '更新演示数据文案（菜品/套餐/分类/用户/员工）'
 
 $grant = @"
 CREATE USER IF NOT EXISTS '$appUser'@'localhost' IDENTIFIED BY '$appPwd';

@@ -1,18 +1,40 @@
 <template>
   <div class="page home">
-    <van-nav-bar :title="shopOpen ? '东华食堂' : '东华食堂（休息中）'" fixed placeholder />
+    <header class="brand-bar">
+      <div class="brand-row">
+        <div class="logo">DHU</div>
+        <div class="brand-text">
+          <h1>东华食堂</h1>
+          <p>松江校区 · 第一食堂</p>
+        </div>
+        <span :class="['status', { off: !shopOpen }]">
+          <i class="dot"></i>{{ shopOpen ? '营业中' : '休息中' }}
+        </span>
+      </div>
+      <van-search
+        v-model="keyword"
+        shape="round"
+        background="transparent"
+        placeholder="搜索菜品或套餐"
+        @search="loadDishes"
+        @clear="loadDishes"
+      />
+    </header>
 
     <van-notice-bar
       v-if="shopStatus === 0"
       left-icon="info-o"
       wrapable
       :scrollable="false"
-      text="当前店铺已打烊，可浏览菜品但无法下单；请管理员在管理端切换营业状态。"
+      text="食堂已结束今日营业，可浏览菜单，明早 07:00 恢复供应。"
     />
 
-    <van-search v-model="keyword" shape="round" placeholder="搜索菜品，如：宫保" @search="loadDishes" @clear="loadDishes" />
+    <div v-if="loading" class="skeleton-wrap">
+      <van-skeleton title avatar :row="3" />
+      <van-skeleton title avatar :row="3" style="margin-top: 20px" />
+      <van-skeleton title avatar :row="3" style="margin-top: 20px" />
+    </div>
 
-    <van-loading v-if="loading" class="loading" vertical>加载中...</van-loading>
     <van-empty v-else-if="error" image="error" :description="error">
       <van-button round type="primary" size="small" @click="init">重新加载</van-button>
     </van-empty>
@@ -23,31 +45,45 @@
       </van-sidebar>
 
       <div class="list">
-        <van-empty v-if="!currentList.length" description="该分类下暂无在售商品" />
+        <div class="list-head">
+          <span class="list-title">{{ (currentCategory || {}).name || '全部' }}</span>
+          <span class="muted">{{ currentList.length }} 款</span>
+        </div>
 
-        <div v-for="d in currentList" :key="d.id" class="dish-row" @click="openDetail(d)">
+        <van-empty v-if="!currentList.length" image="search" description="这个分类还没有上新" />
+
+        <article
+          v-for="d in currentList"
+          :key="d.id"
+          class="dish-card"
+          @click="openDetail(d)"
+        >
           <div class="thumb">
-            <img v-if="d.image" :src="d.image" :alt="d.name" />
+            <img v-if="d.image" :src="d.image" :alt="d.name" loading="lazy" />
             <span v-else>{{ d.name.slice(0, 1) }}</span>
           </div>
+
           <div class="info">
             <div class="name">{{ d.name }}</div>
-            <div class="desc muted">{{ d.description }}</div>
-            <div v-if="isSetmealCategory" class="muted">套餐价，含固定搭配</div>
-            <div v-else-if="flavorHint(d)" class="muted">{{ flavorHint(d) }}</div>
+            <div class="desc">{{ d.description || '食堂当日现做' }}</div>
+            <div v-if="isSetmealCategory" class="meta">套餐 · 含固定搭配</div>
+            <div v-else-if="flavorHint(d)" class="meta ellipsis">{{ flavorHint(d) }}</div>
+
             <div class="row-bottom">
               <span class="price">{{ money(d.price) }}</span>
-              <van-button
-                size="mini"
-                type="primary"
-                round
-                :disabled="!shopOpen"
-                :loading="addingId === d.id"
+              <button
+                class="add-btn"
+                type="button"
+                :disabled="!shopOpen || addingId === d.id"
+                :aria-label="`加入购物车：${d.name}`"
                 @click.stop="quickAdd(d)"
-              >加入购物车</van-button>
+              >
+                <van-loading v-if="addingId === d.id" size="14" color="#fff" />
+                <van-icon v-else name="plus" />
+              </button>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </div>
   </div>
@@ -145,14 +181,14 @@ async function quickAdd(item) {
     return
   }
   if (!shopOpen.value) {
-    showToast('店铺已打烊')
+    showToast('食堂休息中，暂不接单')
     return
   }
   addingId.value = item.id
   try {
     const payload = isSetmealCategory.value ? { setmealId: item.id } : { dishId: item.id }
     await cart.add(payload, 1)
-    showToast({ type: 'success', message: `已加入：${item.name}` })
+    showToast({ type: 'success', message: '已加入购物车' })
   } catch (e) {
     showToast(e.message || '加入购物车失败')
   } finally {
@@ -164,48 +200,270 @@ onMounted(init)
 </script>
 
 <style scoped>
-.home { background: #fff; }
-.loading { padding: 48px 0; }
-.body { display: flex; align-items: flex-start; }
-.cats { width: 96px; flex: none; }
-.list { flex: 1; min-width: 0; padding: 0 12px 12px 0; }
-.dish-row {
+.home {
+  background: var(--bg);
+}
+
+.brand-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 14px 14px 4px;
+  background: linear-gradient(180deg, #fff4ec 0%, #fffaf5 100%);
+  backdrop-filter: blur(8px);
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(140deg, #ffa65c, #ff7a2f);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 122, 47, 0.28);
+}
+
+.brand-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.brand-text h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.brand-text p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #eaf9ef;
+  color: #12a150;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status.off {
+  background: #f2f3f5;
+  color: #86909c;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+
+.cats {
+  width: 88px;
+  flex: none;
+  padding: 4px 0;
+  background: transparent;
+}
+
+.cats :deep(.van-sidebar-item) {
+  background: transparent;
+  border-radius: 0 12px 12px 0;
+  font-size: 13px;
+  padding: 14px 8px;
+  color: var(--ink-2);
+}
+
+.cats :deep(.van-sidebar-item--select) {
+  background: #fff;
+  color: var(--ink-1);
+  font-weight: 600;
+}
+
+.cats :deep(.van-sidebar-item--select::before) {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+
+.list {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px 16px 6px;
+}
+
+.list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 2px 6px;
+}
+
+.list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.dish-card {
   display: flex;
   gap: 10px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f2f3f5;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
   cursor: pointer;
 }
+
+.dish-card:active {
+  transform: scale(0.994);
+  box-shadow: var(--shadow-md);
+}
+
 .thumb {
-  width: 84px;
-  height: 84px;
+  width: 78px;
+  height: 78px;
   flex: none;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
-  background: linear-gradient(135deg, #ffe9c7, #ffd08a);
+  background: linear-gradient(135deg, #ffe3c4, #ffbf86);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
 }
-.thumb img { width: 100%; height: 100%; object-fit: cover; }
-.info { flex: 1; min-width: 0; }
-.name { font-size: 15px; font-weight: 600; }
-.desc { margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
 
-/* 320px 窄屏：菜名与“加入购物车”按钮不能顶出屏幕 */
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.desc {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #b0874f;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-bottom {
+  margin-top: auto;
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.price {
+  font-size: 17px;
+}
+
+.add-btn {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: none;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(255, 122, 47, 0.32);
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.add-btn:active {
+  transform: scale(0.92);
+}
+
+.add-btn:disabled {
+  background: #d8dbe0;
+  box-shadow: none;
+}
+
+/* 320px 窄屏 */
 @media (max-width: 360px) {
-  /* 320px 下分类名要能单行显示 */
   .cats {
-    width: 72px;
+    width: 74px;
     --van-sidebar-font-size: 12px;
     --van-sidebar-padding: 12px 6px;
   }
-  .thumb { width: 56px; height: 56px; font-size: 18px; }
-  .name { font-size: 14px; }
-  .desc { font-size: 11px; }
+
+  .thumb {
+    width: 60px;
+    height: 60px;
+    font-size: 18px;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .desc {
+    font-size: 11px;
+  }
+
+  .price {
+    font-size: 15px;
+  }
 }
 </style>

@@ -17,7 +17,15 @@
       <el-button type="primary" plain @click="reload">查询</el-button>
     </div>
 
-    <el-table :data="rows" border v-loading="loading">
+    <el-table :data="rows" v-loading="loading" row-key="id">
+      <el-table-column label="图片" width="78">
+        <template #default="{ row }">
+          <div class="thumb">
+            <img v-if="row.image" :src="row.image" :alt="row.name" />
+            <span v-else>{{ (row.name || '?').slice(0, 1) }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="菜品名称" min-width="150" />
       <el-table-column prop="categoryName" label="分类" width="120" />
       <el-table-column label="价格" width="100">
@@ -69,8 +77,8 @@
         <el-form-item label="价格（元）" prop="price">
           <el-input-number v-model="form.price" :min="0.01" :max="9999" :precision="2" :step="1" />
         </el-form-item>
-        <el-form-item label="图片 URL" prop="image">
-          <el-input v-model="form.image" placeholder="必填；课程内可用后端静态资源，如 /assets/dish-1.svg" />
+        <el-form-item label="图片地址" prop="image">
+          <el-input v-model="form.image" placeholder="例如 /assets/dish-1.svg" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input v-model="form.description" type="textarea" :rows="2" maxlength="120" show-word-limit />
@@ -83,12 +91,12 @@
               <el-button link type="danger" @click="form.flavors.splice(idx, 1)">删除</el-button>
             </div>
             <el-button size="small" plain @click="addFlavor">添加口味组</el-button>
-            <div class="muted">后端 dish_flavor.value 存 JSON 数组字符串，保存时自动转换</div>
+            <div class="muted">可选值用英文逗号分隔，例如：不辣,微辣,中辣</div>
           </div>
         </el-form-item>
         <el-form-item label="起售状态">
           <el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="起售" inactive-text="停售" />
-          <span class="muted" style="margin-left: 8px">后端新菜品默认停售，需显式设为起售</span>
+          <span class="muted" style="margin-left: 8px">停售菜品不会出现在用户端菜单</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -124,7 +132,7 @@ const rules = {
   name: [{ required: true, message: '请输入菜品名称', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
   price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
-  image: [{ required: true, message: '请填写图片地址（后端契约要求必填）', trigger: 'blur' }]
+  image: [{ required: true, message: '请填写图片地址，例如 /assets/dish-1.svg', trigger: 'blur' }]
 }
 
 function parseValues(value) {
@@ -243,7 +251,7 @@ async function toggleStatus(row, checked) {
 
 async function onDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定删除菜品「${row.name}」吗？被套餐引用时后端会拒绝。`, '删除确认', { type: 'warning' })
+    await ElMessageBox.confirm(`确定删除菜品「${row.name}」吗？被套餐引用时无法删除。`, '删除确认', { type: 'warning' })
   } catch (e) { return }
   try {
     await dishApi.remove(row.id)
@@ -264,4 +272,11 @@ onMounted(async () => {
 .pager { margin-top: 12px; justify-content: flex-end; }
 .flavor-editor { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 .flavor-row { display: flex; gap: 8px; align-items: center; }
+.thumb {
+  width: 46px; height: 34px; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(135deg, #ffe3c4, #ffbf86);
+  color: #fff; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
 </style>

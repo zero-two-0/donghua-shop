@@ -121,7 +121,7 @@ async function main() {
     // ---------- 用户端 ----------
     await goto(cdp, USER_BASE + '/#/login')
     let t = await text(cdp)
-    rec('用户端登录页渲染（含演示身份）', t.includes('东华食堂') && t.includes('演示用户一') && t.includes('demo-user'), { chars: t.length })
+    rec('用户端登录页渲染（含账号选择）', t.includes('东华食堂') && t.includes('学生账号一') && t.includes('进入食堂'), { chars: t.length })
     await shot(cdp, 'h5-01-login-390.png')
 
     // 注入登录态后进入首页
@@ -130,7 +130,7 @@ async function main() {
       localStorage.setItem('sky_login_code','demo-user'); true`)
     await goto(cdp, USER_BASE + '/#/home', 3500)
     t = await text(cdp)
-    rec('用户端首页渲染真实菜品', t.includes('课程热菜') && t.includes('宫保鸡丁'), { chars: t.length })
+    rec('用户端首页渲染真实菜品', t.includes('热菜') && t.includes('宫保鸡丁'), { chars: t.length })
     await shot(cdp, 'h5-02-home-390.png')
 
     // 加一件商品，验证购物车页面
@@ -184,20 +184,20 @@ async function main() {
     await goto(cdp, USER_BASE + '/#/cart', 3000)
     const hash = await evalJs(cdp, 'location.hash')
     t = await text(cdp)
-    rec('未登录访问购物车被路由守卫拦到登录页', hash.includes('/login') && t.includes('演示用户一'), { hash })
+    rec('未登录访问购物车被路由守卫拦到登录页', hash.includes('/login') && t.includes('学生账号一'), { hash })
 
     // ---------- 管理端 ----------
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false })
     await goto(cdp, ADMIN_BASE + '/#/login')
     t = await text(cdp)
-    rec('管理端登录页渲染', t.includes('商家管理端') && t.includes('员工登录'), { chars: t.length })
+    rec('管理端登录页渲染', t.includes('东华食堂') && t.includes('商家管理后台') && t.includes('员工登录'), { chars: t.length })
     await shot(cdp, 'admin-01-login-1440.png')
 
     await evalJs(cdp, `localStorage.setItem('sky_admin_token', ${JSON.stringify(adminToken)});
       localStorage.setItem('sky_admin_employee', JSON.stringify({id:${adminLogin.data.id},name:${JSON.stringify(adminLogin.data.name)},userName:${JSON.stringify(adminLogin.data.userName)}})); true`)
     await goto(cdp, ADMIN_BASE + '/#/dashboard', 4000)
     t = await text(cdp)
-    rec('管理端工作台渲染经营数据', t.includes('今日营业额') && t.includes('订单状态计数'), { chars: t.length })
+    rec('管理端工作台渲染经营数据', t.includes('今日营业额') && t.includes('待处理订单') && t.includes('营业额报表'), { chars: t.length })
     await shot(cdp, 'admin-02-dashboard-1440.png')
 
     await goto(cdp, ADMIN_BASE + '/#/orders', 3500)

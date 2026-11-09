@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:8080",
-  "startedAt": "2026-10-31T09:03:34.478Z",
+  "startedAt": "2026-11-09T10:34:07.499Z",
   "steps": [
     {
       "group": "认证",
@@ -93,7 +93,7 @@
       "ok": true,
       "detail": {
         "count": 1,
-        "number": 1,
+        "number": 2,
         "amount": 18
       }
     },
@@ -128,7 +128,7 @@
       "name": "GET /user/addressBook/list",
       "ok": true,
       "detail": {
-        "count": 11
+        "count": 2
       }
     },
     {
@@ -136,7 +136,7 @@
       "name": "PUT /user/addressBook/default",
       "ok": true,
       "detail": {
-        "id": 3
+        "id": 24
       }
     },
     {
@@ -144,8 +144,8 @@
       "name": "POST /user/order/submit（客户端金额 0.01 不予采信）",
       "ok": true,
       "detail": {
-        "orderId": 14,
-        "orderNumber": "6f149a8657f442fd8e3dde1ab17e1fe4",
+        "orderId": 85,
+        "orderNumber": "c83fff9a5ebe41dfab48f3888698fa34",
         "orderAmount": 36
       }
     },
@@ -172,7 +172,7 @@
       "name": "PUT /user/order/payment（模拟支付）",
       "ok": true,
       "detail": {
-        "packageStr": "SIMULATED:6f149a8657f442fd8e3dde1ab17e1fe4"
+        "packageStr": "SIMULATED:c83fff9a5ebe41dfab48f3888698fa34"
       }
     },
     {
@@ -182,7 +182,7 @@
       "detail": {
         "http": 200,
         "code": 1,
-        "packageStr": "SIMULATED:6f149a8657f442fd8e3dde1ab17e1fe4"
+        "packageStr": "SIMULATED:c83fff9a5ebe41dfab48f3888698fa34"
       }
     },
     {
@@ -190,7 +190,7 @@
       "name": "GET /user/order/historyOrders",
       "ok": true,
       "detail": {
-        "total": 11,
+        "total": 6,
         "records": 5
       }
     },
@@ -210,7 +210,7 @@
       "detail": {
         "http": 200,
         "code": 1,
-        "name": "课程管理员"
+        "name": "张明"
       }
     },
     {
@@ -227,7 +227,7 @@
       "name": "GET /admin/order/conditionSearch 查到刚下的订单",
       "ok": true,
       "detail": {
-        "total": 14,
+        "total": 7,
         "status": 2
       }
     },
@@ -264,7 +264,7 @@
       "ok": true,
       "detail": {
         "status": 5,
-        "deliveryTime": "2026-10-31 17:03:35"
+        "deliveryTime": "2026-11-09 18:34:08"
       }
     },
     {
@@ -272,10 +272,10 @@
       "name": "GET /admin/workspace/businessData",
       "ok": true,
       "detail": {
-        "turnover": 108,
-        "validOrderCount": 3,
-        "orderCompletionRate": 1,
-        "unitPrice": 36,
+        "turnover": 48,
+        "validOrderCount": 2,
+        "orderCompletionRate": 0.6667,
+        "unitPrice": 24,
         "newUsers": 0
       }
     },
@@ -284,8 +284,8 @@
       "name": "GET /admin/report/turnoverStatistics",
       "ok": true,
       "detail": {
-        "dateList": "2026-10-31",
-        "turnoverList": "108.00"
+        "dateList": "2026-11-09",
+        "turnoverList": "48.00"
       }
     },
     {
@@ -295,7 +295,7 @@
       "detail": {
         "toBeConfirmed": 0,
         "confirmed": 0,
-        "deliveryInProgress": 0
+        "deliveryInProgress": 1
       }
     },
     {
@@ -332,7 +332,7 @@
       }
     }
   ],
-  "finishedAt": "2026-10-31T09:03:34.763Z",
+  "finishedAt": "2026-11-09T10:34:07.908Z",
   "summary": {
     "total": 37,
     "pass": 37,

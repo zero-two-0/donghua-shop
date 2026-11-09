@@ -1,11 +1,13 @@
 ﻿# 一键回归：接口三套 + 静态部署（可选浏览器两套）
 # 用法：
-#   .\scripts\run-all-tests.ps1              # 接口 + 静态部署（自动起停 serve-dist）
-#   .\scripts\run-all-tests.ps1 -WithUI      # 追加浏览器渲染与点击流（需 5173/5174 已启动）
-#   .\scripts\run-all-tests.ps1 -WithUI -StartDev   # 连 dev server 也自动起停
+#   .\scripts\run-all-tests.ps1                      # 接口 + 静态部署（自动起停 serve-dist）
+#   .\scripts\run-all-tests.ps1 -WithUI              # 追加浏览器渲染与点击流（需前端端口已启动）
+#   .\scripts\run-all-tests.ps1 -WithUI -StartDev    # 连 dev server 也自动起停
+#   .\scripts\run-all-tests.ps1 -WithUI -Nginx       # 复用已启动的 Nginx（8081/8082），不再起 serve-dist
 param(
     [switch]$WithUI,
-    [switch]$StartDev
+    [switch]$StartDev,
+    [switch]$Nginx
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,7 +21,7 @@ $results = New-Object System.Collections.Generic.List[object]
 function Add-Result($name, $code) {
     $ok = ($code -eq 0)
     $results.Add([pscustomobject]@{ 套件 = $name; 结果 = $(if ($ok) { 'PASS' } else { 'FAIL' }) })
-    Write-Host ("  {0,-22} {1}" -f $name, $(if ($ok) { 'PASS' } else { 'FAIL' })) -ForegroundColor $(if ($ok) { 'Green' } else { 'Red' })
+    Write-Host ("  {0,-24} {1}" -f $name, $(if ($ok) { 'PASS' } else { 'FAIL' })) -ForegroundColor $(if ($ok) { 'Green' } else { 'Red' })
 }
 
 function Test-Port($port) {
@@ -42,20 +44,33 @@ try {
     node scripts\smoke-exceptions.mjs 2>&1 | Select-Object -Last 1
     Add-Result '异常/边界 16 项' $LASTEXITCODE
 
-    Write-Host '== 静态部署验证（自动起停 serve-dist） ==' -ForegroundColor Cyan
-    $userDist = Join-Path $projRoot 'code\frontend\user-h5\dist'
-    $adminDist = Join-Path $projRoot 'code\frontend\admin-web\dist'
-    if (-not (Test-Path $userDist)) { throw ' 缺少 dist：先跑 .\scripts\build-frontend.ps1' }
-
-    $p1 = Start-Process node -ArgumentList @('scripts\serve-dist.mjs', $userDist, '8081', 'http://127.0.0.1:8080') -PassThru -WindowStyle Hidden
-    $p2 = Start-Process node -ArgumentList @('scripts\serve-dist.mjs', $adminDist, '8082', 'http://127.0.0.1:8080') -PassThru -WindowStyle Hidden
-    try {
-        Start-Sleep -Seconds 3
+    if ($Nginx) {
+        Write-Host '== 静态部署验证（复用已启动的 Nginx） ==' -ForegroundColor Cyan
+        if (-not (Test-Port 8081) -or -not (Test-Port 8082)) {
+            throw ' Nginx 未就绪：先跑 .\scripts\start-nginx.ps1 -NginxHome <安装目录>'
+        }
+        $env:STATIC_USER_BASE = 'http://127.0.0.1:8081'
+        $env:STATIC_ADMIN_BASE = 'http://127.0.0.1:8082'
+        $env:STATIC_MODE = 'Nginx 静态托管 + 接口反代（Windows）'
+        $env:STATIC_OUT = 'docs/deployment/evidence/nginx-deploy.json'
         node scripts\check-static-deploy.mjs 2>&1 | Select-Object -Last 1
-        Add-Result '静态部署 13 项' $LASTEXITCODE
-    } finally {
-        Stop-Process -Id $p1.Id -Force -ErrorAction SilentlyContinue
-        Stop-Process -Id $p2.Id -Force -ErrorAction SilentlyContinue
+        Add-Result '静态部署 13 项(Nginx)' $LASTEXITCODE
+    } else {
+        Write-Host '== 静态部署验证（自动起停 serve-dist） ==' -ForegroundColor Cyan
+        $userDist = Join-Path $projRoot 'code\frontend\user-h5\dist'
+        $adminDist = Join-Path $projRoot 'code\frontend\admin-web\dist'
+        if (-not (Test-Path $userDist)) { throw ' 缺少 dist：先跑 .\scripts\build-frontend.ps1' }
+
+        $p1 = Start-Process node -ArgumentList @('scripts\serve-dist.mjs', $userDist, '8081', 'http://127.0.0.1:8080') -PassThru -WindowStyle Hidden
+        $p2 = Start-Process node -ArgumentList @('scripts\serve-dist.mjs', $adminDist, '8082', 'http://127.0.0.1:8080') -PassThru -WindowStyle Hidden
+        try {
+            Start-Sleep -Seconds 3
+            node scripts\check-static-deploy.mjs 2>&1 | Select-Object -Last 1
+            Add-Result '静态部署 13 项' $LASTEXITCODE
+        } finally {
+            Stop-Process -Id $p1.Id -Force -ErrorAction SilentlyContinue
+            Stop-Process -Id $p2.Id -Force -ErrorAction SilentlyContinue
+        }
     }
 
     if ($WithUI) {
@@ -66,8 +81,17 @@ try {
             $devJobs += Start-Process node -ArgumentList @(Join-Path $projRoot 'node_modules\.bin\vite'), '--port', '5174' -WorkingDirectory (Join-Path $projRoot 'code\frontend\admin-web') -PassThru -WindowStyle Hidden
             Start-Sleep -Seconds 8
         }
-        if (-not (Test-Port 5173) -or -not (Test-Port 5174)) { Write-Host '  跳过：5173/5174 未启动（加 -StartDev 或先 start-all.ps1）' -ForegroundColor Yellow }
-        else {
+
+        if ($Nginx) {
+            $env:USER_BASE = 'http://127.0.0.1:8081'
+            $env:ADMIN_BASE = 'http://127.0.0.1:8082'
+            $env:SHOTS_DIR = 'docs/deployment/evidence/nginx-shots'
+        }
+
+        $uiReady = (Test-Port 8081) -and (Test-Port 8082)
+        if (-not $uiReady) {
+            Write-Host '  跳过：前端端口未就绪（-StartDev / start-all.ps1 / 或 -Nginx）' -ForegroundColor Yellow
+        } else {
             node scripts\browser-check.mjs 2>&1 | Select-Object -Last 1
             Add-Result '浏览器渲染 14 项' $LASTEXITCODE
             node scripts\browser-flow.mjs 2>&1 | Select-Object -Last 1

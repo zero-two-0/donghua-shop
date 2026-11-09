@@ -1,36 +1,50 @@
 <template>
-  <div class="page">
+  <div class="page setmeal-page">
     <van-nav-bar title="套餐详情" left-arrow fixed placeholder @click-left="router.back()" />
 
-    <van-loading v-if="loading" class="loading" vertical>加载中...</van-loading>
+    <van-skeleton v-if="loading" title :row="5" class="skeleton-wrap" style="padding-top: 16px" />
     <van-empty v-else-if="error" image="error" :description="error" />
 
     <template v-else-if="setmeal">
-      <div class="cover">
+      <div class="hero">
         <img v-if="setmeal.image" :src="setmeal.image" :alt="setmeal.name" />
-        <span v-else>{{ setmeal.name }}</span>
+        <div v-else class="hero-fallback">{{ setmeal.name.slice(0, 1) }}</div>
+        <div v-if="setmeal.status !== 1" class="hero-mask">今日已售完</div>
       </div>
 
-      <van-cell-group inset class="block">
-        <van-cell :title="setmeal.name" :label="setmeal.description || '暂无描述'">
-          <template #value><span class="price">{{ money(setmeal.price) }}</span></template>
-        </van-cell>
-        <van-cell title="状态" :value="setmeal.status === 1 ? '在售' : '已停售'" />
-      </van-cell-group>
+      <section class="card head-card">
+        <div class="head-main">
+          <h1>{{ setmeal.name }}</h1>
+          <p class="desc">{{ setmeal.description || '食堂当日搭配，按套餐结算更划算' }}</p>
+        </div>
+        <div class="head-price">
+          <span class="price">{{ money(setmeal.price) }}</span>
+          <span class="unit">/ 套</span>
+        </div>
+      </section>
 
-      <van-cell-group inset class="block">
-        <van-cell title="套餐组成" />
-        <van-cell v-for="(item, idx) in items" :key="idx" :title="item.name" :label="item.description || ''">
-          <template #value><span class="muted">×{{ item.copies }}</span></template>
-        </van-cell>
-        <van-empty v-if="!items.length" description="暂未查询到套餐组成" />
-      </van-cell-group>
+      <section class="card">
+        <h2 class="card-title">套餐包含</h2>
+        <div v-for="(item, idx) in items" :key="idx" class="combo">
+          <div class="combo-thumb">
+            <img v-if="item.image" :src="item.image" :alt="item.name" />
+            <span v-else>{{ (item.name || '?').slice(0, 1) }}</span>
+          </div>
+          <div class="combo-main">
+            <div class="combo-name">{{ item.name }}</div>
+            <div v-if="item.description" class="combo-desc">{{ item.description }}</div>
+          </div>
+          <span class="copies">×{{ item.copies }}</span>
+        </div>
+        <van-empty v-if="!items.length" image="search" description="暂未查询到套餐组成" />
+      </section>
 
       <van-submit-bar
         :price="cents(setmeal.price)"
-        button-text="加入购物车"
+        :button-text="setmeal.status === 1 ? '加入购物车' : '今日已售完'"
         :disabled="setmeal.status !== 1"
         :loading="submitting"
+        class="bar"
         @submit="onAdd"
       />
     </template>
@@ -64,7 +78,7 @@ async function load() {
     const list = (await catalogApi.setmeals({})) || []
     const target = list.find((s) => String(s.id) === String(route.params.id))
     if (!target) {
-      error.value = '套餐不存在或已停售'
+      error.value = '套餐不存在或已下架'
       return
     }
     setmeal.value = target
@@ -97,17 +111,152 @@ onMounted(load)
 </script>
 
 <style scoped>
-.cover {
-  height: 160px;
-  background: linear-gradient(135deg, #ffe9c7, #ffd08a);
+.setmeal-page {
+  background: var(--bg);
+  padding-bottom: 84px;
+}
+
+.hero {
+  position: relative;
+  height: 190px;
+  background: linear-gradient(135deg, #ffe3c4, #ffbf86);
+  overflow: hidden;
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-fallback {
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 26px;
+  font-size: 46px;
   font-weight: 700;
 }
-.cover img { width: 100%; height: 100%; object-fit: cover; }
-.block { margin-top: 12px; }
-.loading { padding: 40px 0; }
+
+.hero-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(31, 35, 41, 0.55);
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+
+.card {
+  margin: 12px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.head-card {
+  margin-top: -22px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.head-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.head-main h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
+.head-price {
+  flex: none;
+  text-align: right;
+}
+
+.head-price .price {
+  font-size: 22px;
+}
+
+.unit {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.card-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.combo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.combo + .combo {
+  border-top: 1px solid var(--line);
+}
+
+.combo-thumb {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffe3c4, #ffbf86);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.combo-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.combo-name {
+  font-size: 14px;
+}
+
+.combo-desc {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.copies {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 </style>

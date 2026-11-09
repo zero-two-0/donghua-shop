@@ -14,15 +14,17 @@
       <el-button type="primary" plain @click="reload">查询</el-button>
     </div>
 
-    <el-table :data="rows" border v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" />
+    <el-table :data="rows" v-loading="loading">
+      <el-table-column prop="id" label="ID" width="80" align="center" />
       <el-table-column prop="name" label="分类名称" min-width="160" />
       <el-table-column label="类型" width="120">
         <template #default="{ row }">
-          <el-tag :type="row.type === 1 ? '' : 'success'" effect="plain">{{ row.type === 1 ? '菜品分类' : '套餐分类' }}</el-tag>
+          <el-tag :type="row.type === 1 ? 'warning' : 'success'" effect="light" round>
+            {{ row.type === 1 ? '菜品分类' : '套餐分类' }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="sort" label="排序" width="90" />
+      <el-table-column prop="sort" label="排序" width="90" align="center" />
       <el-table-column label="状态" width="130">
         <template #default="{ row }">
           <el-switch
@@ -128,7 +130,6 @@ async function onSave() {
   if (!valid) return
   saving.value = true
   try {
-    // 契约：新增 POST /admin/category，修改 PUT /admin/category（body 带 id）
     if (form.id) await categoryApi.update({ ...form })
     else await categoryApi.create({ name: form.name, type: form.type, sort: form.sort })
     ElMessage.success('保存成功')
@@ -156,7 +157,7 @@ async function toggleStatus(row, checked) {
 
 async function onDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定删除分类「${row.name}」吗？分类下仍有商品时后端会拒绝。`, '删除确认', { type: 'warning' })
+    await ElMessageBox.confirm(`确定删除分类「${row.name}」吗？分类下仍有菜品时无法删除。`, '删除确认', { type: 'warning' })
   } catch (e) { return }
   try {
     await categoryApi.remove(row.id)

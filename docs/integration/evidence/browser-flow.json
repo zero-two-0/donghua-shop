@@ -1,6 +1,10 @@
 {
   "mode": "Edge headless + CDP 真实点击（DOM click），真实后端",
   "shots": [
+    "admin-01-login-1440.png",
+    "admin-02-dashboard-1440.png",
+    "admin-03-orders-1440.png",
+    "admin-04-dishes-1440.png",
     "flow-01-after-login.png",
     "flow-02-after-add.png",
     "flow-03-cart-plus.png",
@@ -10,9 +14,16 @@
     "flow-07-admin-dashboard.png",
     "flow-08-admin-accepted.png",
     "flow-09-admin-completed.png",
-    "flow-10-admin-validation.png"
+    "flow-10-admin-validation.png",
+    "h5-01-login-390.png",
+    "h5-02-home-390.png",
+    "h5-03-cart-390.png",
+    "h5-04-orders-390.png",
+    "h5-05-home-1280.png",
+    "h5-06-home-320.png",
+    "h5-07-cart-320.png"
   ],
-  "finishedAt": "2026-10-31T09:04:49.383Z",
+  "finishedAt": "2026-11-09T10:35:21.873Z",
   "steps": [
     {
       "name": "点击身份与登录按钮后跳转首页并保存令牌",
@@ -60,15 +71,15 @@
       "ok": true,
       "detail": {
         "payClick": "clicked",
-        "hash": "#/orders/17"
+        "hash": "#/orders/88"
       }
     },
     {
       "name": "详情页可读出订单号（供管理端按行定位）",
       "ok": true,
       "detail": {
-        "orderId": "17",
-        "orderNumber": "59c16cb4558d4a249af06b6302090589"
+        "orderId": "88",
+        "orderNumber": "5c47c3ca36934fa784b50f62f8f6f1b8"
       }
     },
     {
@@ -82,7 +93,7 @@
       "name": "订单管理列表能按订单号定位到该订单",
       "ok": true,
       "detail": {
-        "orderNumber": "59c16cb4558d4a249af06b6302090589"
+        "orderNumber": "5c47c3ca36934fa784b50f62f8f6f1b8"
       }
     },
     {
@@ -104,7 +115,7 @@
       "ok": true,
       "detail": {
         "complete": "clicked",
-        "orderId": "17",
+        "orderId": "88",
         "status": 5
       }
     },

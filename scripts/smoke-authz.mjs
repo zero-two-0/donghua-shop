@@ -43,12 +43,12 @@ async function main() {
   const addrCreate = await api('POST', '/user/addressBook', {
     token: alice.token,
     body: {
-      consignee: '越权用例-A', phone: '00000000000', sex: '1',
+      consignee: '陈子涵', phone: '13800001234', sex: '1',
       districtName: '松江区', detail: 'A 的地址 ' + Date.now(), label: '学校'
     }
   })
   const addrListA = await api('GET', '/user/addressBook/list', { token: alice.token })
-  const aliceAddr = (addrListA.body?.data || []).find((a) => a.consignee === '越权用例-A')
+  const aliceAddr = (addrListA.body?.data || []).find((a) => a.consignee === '陈子涵')
   record('A 新增地址成功', okData(addrCreate) && !!aliceAddr, { addressId: aliceAddr?.id })
 
   const dishList = await api('GET', '/user/dish/list')
@@ -88,7 +88,7 @@ async function main() {
   // ---------- A 下单，B 越权操作 A 的订单 ----------
   const submit = await api('POST', '/user/order/submit', {
     token: alice.token,
-    body: { addressBookId: aliceAddr.id, payMethod: 1, remark: '越权用例', deliveryStatus: 1, tablewareNumber: 0, tablewareStatus: 1, packAmount: 0 }
+    body: { addressBookId: aliceAddr.id, payMethod: 1, remark: '不要香菜', deliveryStatus: 1, tablewareNumber: 0, tablewareStatus: 1, packAmount: 0 }
   })
   const order = submit.body?.data || {}
   record('A 下单成功（订单状态待付款）', okData(submit) && !!order.id, { orderId: order.id, number: order.number, amount: order.orderAmount })

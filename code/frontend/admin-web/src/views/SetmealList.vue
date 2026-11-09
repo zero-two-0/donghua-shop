@@ -17,7 +17,15 @@
       <el-button type="primary" plain @click="reload">查询</el-button>
     </div>
 
-    <el-table :data="rows" border v-loading="loading">
+    <el-table :data="rows" v-loading="loading" row-key="id">
+      <el-table-column label="图片" width="78">
+        <template #default="{ row }">
+          <div class="thumb">
+            <img v-if="row.image" :src="row.image" :alt="row.name" />
+            <span v-else>{{ (row.name || '?').slice(0, 1) }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="套餐名称" min-width="160" />
       <el-table-column prop="categoryName" label="分类" width="120" />
       <el-table-column label="价格" width="100">
@@ -270,4 +278,11 @@ onMounted(async () => {
 .pager { margin-top: 12px; justify-content: flex-end; }
 .dish-editor { width: 100%; display: flex; flex-direction: column; gap: 8px; }
 .dish-row { display: flex; gap: 8px; align-items: center; }
+.thumb {
+  width: 46px; height: 34px; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(135deg, #ffe3c4, #ffbf86);
+  color: #fff; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
 </style>

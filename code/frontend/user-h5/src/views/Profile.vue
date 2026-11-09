@@ -1,35 +1,59 @@
 <template>
-  <div class="page">
-    <van-nav-bar title="个人中心" fixed placeholder />
-
-    <div class="user-card">
-      <div class="avatar">{{ auth.displayName.slice(0, 1) }}</div>
-      <div>
-        <div class="name">{{ auth.isLogin ? auth.displayName : '未登录' }}</div>
-        <div class="muted">{{ auth.isLogin ? '受控课程身份：' + (auth.user?.openid || '') : '登录后可下单与查看订单' }}</div>
+  <div class="page profile-page">
+    <header class="profile-head">
+      <div class="avatar">{{ (auth.isLogin ? auth.displayName : '食').slice(0, 1) }}</div>
+      <div class="head-main">
+        <h1>{{ auth.isLogin ? auth.displayName : '未登录' }}</h1>
+        <p>{{ auth.isLogin ? '东华大学 · 松江校区' : '登录后可下单与查看订单' }}</p>
       </div>
-      <van-button v-if="!auth.isLogin" size="small" type="primary" @click="router.push('/login')">去登录</van-button>
+      <van-button v-if="!auth.isLogin" size="small" round type="primary" @click="router.push('/login')">
+        去登录
+      </van-button>
+    </header>
+
+    <div v-if="auth.isLogin" class="stats">
+      <div class="stat" @click="goOrders('1')">
+        <b>{{ stats.pending }}</b>
+        <span>待付款</span>
+      </div>
+      <div class="stat" @click="goOrders('2')">
+        <b>{{ stats.ongoing }}</b>
+        <span>进行中</span>
+      </div>
+      <div class="stat" @click="goOrders('5')">
+        <b>{{ stats.done }}</b>
+        <span>已完成</span>
+      </div>
     </div>
 
-    <van-cell-group v-if="auth.isLogin" inset class="block">
+    <section class="card group">
+      <div class="group-title">常用功能</div>
       <van-cell title="我的订单" is-link to="/orders" icon="orders-o" />
       <van-cell title="收货地址" is-link to="/addresses" icon="location-o" />
-    </van-cell-group>
+    </section>
 
-    <van-cell-group inset class="block">
-      <van-cell title="店铺状态" :value="shopText" icon="shop-o" />
-      <van-cell title="关于本系统" is-link icon="info-o" @click="showAbout = true" />
-    </van-cell-group>
+    <section class="card group">
+      <div class="group-title">更多</div>
+      <van-cell title="店铺状态" icon="shop-o">
+        <template #value>
+          <span :class="['shop-state', { off: shopStatus === 0 }]">{{ shopText }}</span>
+        </template>
+      </van-cell>
+      <van-cell title="关于" is-link icon="info-o" @click="showAbout = true" />
+    </section>
 
-    <div class="logout" v-if="auth.isLogin">
-      <van-button round block plain type="danger" @click="onLogout">退出登录</van-button>
+    <div v-if="auth.isLogin" class="logout">
+      <van-button round block @click="onLogout">退出登录</van-button>
     </div>
 
-    <van-dialog v-model:show="showAbout" title="关于" show-cancel-button :show-confirm-button="false">
+    <p class="foot">东华大学 · 校园点餐系统 v1.2.0</p>
+
+    <van-dialog v-model:show="showAbout" title="关于" :show-confirm-button="false" show-cancel-button>
       <div class="about">
-        <p>东华大学在线点餐系统 · 用户端 H5（Vue 3 + Vant 4）</p>
-        <p class="muted">接口契约：组长 OpenAPI v1.0.0-draft（41 个用户端/管理端路径）。</p>
-        <p class="muted">课程内使用受控测试身份与模拟支付，不接入微信登录、短信与真实支付。</p>
+        <p class="app-name">东华食堂 · 校园点餐</p>
+        <p class="muted">版本 1.2.0</p>
+        <p class="muted">在线支付为模拟支付，不会产生真实扣款。</p>
+        <p class="muted">如需帮助，请联系食堂服务台。</p>
       </div>
     </van-dialog>
   </div>
@@ -39,20 +63,39 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from 'vant'
-import { catalogApi } from '../api/user'
+import { catalogApi, orderApi } from '../api/user'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
 const showAbout = ref(false)
 const shopStatus = ref(1)
+const stats = ref({ pending: 0, ongoing: 0, done: 0 })
 
 const shopText = computed(() => (shopStatus.value === 1 ? '营业中' : '休息中'))
+
+function goOrders(status) {
+  router.push({ path: '/orders', query: { status } })
+}
 
 function onLogout() {
   auth.logout()
   showToast('已退出登录')
   router.replace('/login')
+}
+
+async function loadStats() {
+  try {
+    const page = await orderApi.history({ page: 1, pageSize: 50 })
+    const list = (page && page.records) || []
+    stats.value = {
+      pending: list.filter((o) => o.status === 1).length,
+      ongoing: list.filter((o) => o.status === 2 || o.status === 3 || o.status === 4).length,
+      done: list.filter((o) => o.status === 5).length
+    }
+  } catch (e) {
+    /* 统计失败不影响页面 */
+  }
 }
 
 onMounted(async () => {
@@ -61,32 +104,135 @@ onMounted(async () => {
   } catch (e) {
     shopStatus.value = 1
   }
+  if (auth.isLogin) loadStats()
 })
 </script>
 
 <style scoped>
-.user-card {
+.profile-page {
+  background: var(--bg);
+}
+
+.profile-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
-  background: linear-gradient(160deg, #f2a63b, #ee7a24);
+  gap: 14px;
+  padding: 26px 18px 30px;
+  background: linear-gradient(150deg, #ff9a4d, #ff7a2f 60%, #f2601c);
   color: #fff;
+  border-radius: 0 0 26px 26px;
 }
+
 .avatar {
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
+  flex: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
 }
-.user-card .name { font-size: 17px; font-weight: 600; }
-.user-card .muted { color: rgba(255, 255, 255, 0.85); font-size: 12px; }
-.block { margin-top: 12px; }
-.logout { padding: 24px 16px; }
-.about { padding: 12px 20px; font-size: 13px; line-height: 1.8; }
+
+.head-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.head-main h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.head-main p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: 0.88;
+}
+
+.stats {
+  display: flex;
+  margin: -16px 12px 0;
+  padding: 14px 0;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--line);
+}
+
+.stat b {
+  display: block;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.stat span {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.card.group {
+  margin: 12px;
+  padding: 6px 0 2px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.group-title {
+  padding: 10px 16px 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.shop-state {
+  color: #12a150;
+  font-size: 13px;
+}
+
+.shop-state.off {
+  color: var(--ink-3);
+}
+
+.logout {
+  padding: 20px 16px 8px;
+}
+
+.foot {
+  margin: 6px 0 20px;
+  text-align: center;
+  font-size: 11px;
+  color: #b8bcc3;
+}
+
+.about {
+  padding: 18px 22px 22px;
+  text-align: center;
+}
+
+.app-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.about .muted {
+  margin: 4px 0;
+  line-height: 1.6;
+}
 </style>

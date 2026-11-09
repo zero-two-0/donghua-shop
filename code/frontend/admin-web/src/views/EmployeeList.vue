@@ -72,8 +72,8 @@
           type="info"
           :closable="false"
           show-icon
-          title="口令由后端 PBKDF2 加盐保存"
-          description="响应不会返回密码字段；编辑时不修改密码，改密需后端提供独立接口（当前契约未包含）。"
+          title="密码仅在新建员工时设置"
+          description="编辑员工资料不会修改密码；如需重置密码，请联系系统管理员处理。"
         />
       </el-form>
       <template #footer>

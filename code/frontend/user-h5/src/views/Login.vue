@@ -1,41 +1,50 @@
 <template>
   <div class="page login-page">
     <div class="hero">
-      <div class="hero-badge">DHU</div>
-      <h1>东华食堂 · 在线点餐</h1>
-      <p class="hero-sub">课程演示身份登录（不接入微信、不发送短信）</p>
-    </div>
-
-    <div class="identities">
-      <div
-        v-for="id in identities"
-        :key="id.code"
-        :class="['identity', { active: selected === id.code }]"
-        @click="selected = id.code"
-      >
-        <div class="identity-name">{{ id.name }}</div>
-        <div class="muted">{{ id.code }}</div>
+      <div class="hero-top">
+        <div class="logo">DHU</div>
+        <div class="brand">
+          <h1>东华食堂</h1>
+          <p>松江校区 · 校园点餐</p>
+        </div>
       </div>
+      <p class="slogan">提前点好，下课即取</p>
     </div>
 
-    <div class="submit-wrap">
-      <van-button round block type="primary" :loading="loading" @click="onLogin">
-        以「{{ currentName }}」进入
+    <div class="panel">
+      <h2 class="panel-title">选择账号进入</h2>
+      <p class="panel-sub">校园账号已自动识别，选择常用账号即可开始点餐</p>
+
+      <div class="accounts">
+        <button
+          v-for="id in identities"
+          :key="id.code"
+          type="button"
+          :class="['account', { active: selected === id.code }]"
+          @click="selected = id.code"
+        >
+          <span class="avatar" :style="{ background: id.color }">{{ id.initial }}</span>
+          <span class="account-main">
+            <span class="account-name">{{ id.name }}</span>
+            <span class="account-note">{{ id.note }}</span>
+          </span>
+          <van-icon :name="selected === id.code ? 'checked' : 'circle'" :class="['tick', { on: selected === id.code }]" />
+        </button>
+      </div>
+
+      <van-button round block type="primary" :loading="loading" class="enter-btn" @click="onLogin">
+        进入食堂
       </van-button>
-      <p class="muted center">
-        后端地址由 Vite 代理转发；若提示网络异常，请先确认 8080 端口的 Java 服务已启动。
+
+      <p class="agreement">
+        进入即表示同意《校园点餐服务须知》与《隐私说明》
       </p>
     </div>
 
-    <div class="tips">
-      <p><b>为什么是测试身份？</b></p>
-      <p>
-        课程范围不接入短信与微信登录。后端只允许
-        <code>demo-user</code> 与 <code>demo-user-2</code> 两个受控标识，
-        返回 JWT 后所有受保护请求使用
-        <code>Authorization: Bearer &lt;token&gt;</code>。第二个身份用于验证越权隔离。
-      </p>
-    </div>
+    <footer class="foot">
+      <span>东华大学 · 校园点餐系统</span>
+      <span class="ver">v1.2.0</span>
+    </footer>
   </div>
 </template>
 
@@ -52,8 +61,8 @@ const auth = useAuthStore()
 const cart = useCartStore()
 
 const identities = [
-  { code: 'demo-user', name: '演示用户一' },
-  { code: 'demo-user-2', name: '演示用户二' }
+  { code: 'demo-user', name: '学生账号一', note: '2023 级 · 计算机学院', initial: '张', color: '#ffb15c' },
+  { code: 'demo-user-2', name: '学生账号二', note: '2023 级 · 纺织学院', initial: '李', color: '#7cc9a5' }
 ]
 const selected = ref('demo-user')
 const loading = ref(false)
@@ -64,11 +73,11 @@ async function onLogin() {
   try {
     await auth.login(selected.value)
     await cart.load().catch(() => {})
-    showToast({ type: 'success', message: '登录成功' })
+    showToast({ type: 'success', message: '欢迎回来' })
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/home'
     router.replace(redirect)
   } catch (e) {
-    showToast(e.message || '登录失败')
+    showToast(e.message || '登录失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -76,44 +85,179 @@ async function onLogin() {
 </script>
 
 <style scoped>
-.login-page { background: #fff; padding-bottom: 24px; }
+.login-page {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 24px;
+}
+
 .hero {
-  padding: 44px 24px 26px;
-  background: linear-gradient(160deg, #f2a63b, #ee7a24);
+  padding: 34px 22px 46px;
+  background: linear-gradient(150deg, #ff9a4d 0%, #ff7a2f 46%, #f2601c 100%);
   color: #fff;
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 28px 28px;
 }
-.hero-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.brand p {
+  margin: 3px 0 0;
   font-size: 12px;
+  opacity: 0.88;
+}
+
+.slogan {
+  margin: 22px 0 0;
+  font-size: 15px;
   letter-spacing: 2px;
+  opacity: 0.95;
 }
-.hero h1 { font-size: 22px; margin: 12px 0 6px; }
-.hero-sub { margin: 0; font-size: 13px; opacity: 0.9; }
-.identities { display: flex; gap: 12px; padding: 20px 16px 0; }
-.identity {
+
+.panel {
   flex: 1;
-  border: 1px solid #ebedf0;
-  border-radius: 12px;
-  padding: 14px 12px;
-  cursor: pointer;
-  transition: all 0.15s;
+  margin: -26px 16px 0;
+  padding: 20px 18px 18px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
-.identity.active { border-color: #ee7a24; background: #fff8ec; }
-.identity-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-.submit-wrap { margin: 20px 16px 0; }
-.center { text-align: center; }
-.tips {
-  margin: 24px 16px 0;
-  padding: 12px;
-  background: #fff8ec;
-  border-radius: 10px;
+
+.panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.panel-sub {
+  margin: 6px 0 16px;
   font-size: 12px;
-  line-height: 1.7;
-  color: #7a5b2a;
+  color: var(--ink-3);
+  line-height: 1.6;
 }
-.tips code { background: #ffe9c7; padding: 0 4px; border-radius: 3px; }
+
+.accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: #fff;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.account:active {
+  transform: scale(0.99);
+}
+
+.account.active {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.account-note {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.tick {
+  font-size: 19px;
+  color: #d5d8dd;
+}
+
+.tick.on {
+  color: var(--brand);
+}
+
+.enter-btn {
+  margin-top: 18px;
+  height: 46px;
+  font-size: 16px;
+}
+
+.agreement {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--ink-3);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.foot {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #b8bcc3;
+}
+
+.ver {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #eef0f3;
+}
 </style>

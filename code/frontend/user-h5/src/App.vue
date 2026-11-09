@@ -1,6 +1,10 @@
 <template>
   <div class="phone-canvas">
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
 
     <van-tabbar v-if="showTabbar" route fixed placeholder safe-area-inset-bottom>
       <van-tabbar-item to="/home" icon="shop-o">点餐</van-tabbar-item>
