@@ -73,6 +73,7 @@
               <span class="price">{{ money(d.price) }}</span>
               <button
                 class="add-btn"
+                :class="{ pop: poppingId === d.id }"
                 type="button"
                 :disabled="!shopOpen || addingId === d.id"
                 :aria-label="`加入购物车：${d.name}`"
@@ -111,6 +112,7 @@ const loading = ref(true)
 const error = ref('')
 const shopStatus = ref(1)
 const addingId = ref(0)
+const poppingId = ref(0)
 
 const shopOpen = computed(() => shopStatus.value === 1)
 const currentCategory = computed(() => categories.value[active.value] || null)
@@ -126,11 +128,20 @@ async function init() {
   loading.value = true
   error.value = ''
   try {
-    const [dishCats, setmealCats, status] = await Promise.all([
-      catalogApi.categories(1).catch(() => []),
-      catalogApi.categories(2).catch(() => []),
-      catalogApi.shopStatus().catch(() => 1)
+    const [dishRes, setmealRes, statusRes] = await Promise.allSettled([
+      catalogApi.categories(1),
+      catalogApi.categories(2),
+      catalogApi.shopStatus()
     ])
+    // 三个请求全失败 = 后端/网络不通，给出可重试的错误态；
+    // 只失败一部分时仍按可用数据渲染，不整页报错。
+    if (dishRes.status === 'rejected' && setmealRes.status === 'rejected' && statusRes.status === 'rejected') {
+      error.value = '网络开小差了，请检查网络后重试'
+      return
+    }
+    const dishCats = dishRes.status === 'fulfilled' ? dishRes.value : []
+    const setmealCats = setmealRes.status === 'fulfilled' ? setmealRes.value : []
+    const status = statusRes.status === 'fulfilled' ? statusRes.value : 1
     categories.value = [...(dishCats || []), ...(setmealCats || [])]
     shopStatus.value = Number(status) === 0 ? 0 : 1
     await loadCurrent()
@@ -188,6 +199,9 @@ async function quickAdd(item) {
   try {
     const payload = isSetmealCategory.value ? { setmealId: item.id } : { dishId: item.id }
     await cart.add(payload, 1)
+    // 圆形加购按钮回弹一下，给一个"东西进去了"的即时反馈
+    poppingId.value = item.id
+    setTimeout(() => { poppingId.value = 0 }, 360)
     showToast({ type: 'success', message: '已加入购物车' })
   } catch (e) {
     showToast(e.message || '加入购物车失败')
@@ -433,6 +447,26 @@ onMounted(init)
 
 .add-btn:active {
   transform: scale(0.92);
+}
+
+/* 加购成功后的回弹，给一个"东西已经进购物车"的反馈 */
+.add-btn.pop {
+  animation: add-pop 0.34s ease;
+}
+
+@keyframes add-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.8);
+  }
+  72% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .add-btn:disabled {

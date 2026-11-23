@@ -11,6 +11,10 @@
       <van-skeleton title :row="3" style="margin-top: 18px" />
     </div>
 
+    <van-empty v-else-if="failed" image="network" description="订单加载失败，请检查网络后重试">
+      <van-button round type="primary" size="small" @click="load">重新加载</van-button>
+    </van-empty>
+
     <van-empty v-else-if="!orders.length" image="search" description="还没有相关订单">
       <van-button round type="primary" size="small" to="/home">去点餐</van-button>
     </van-empty>
@@ -19,7 +23,7 @@
       <div class="list">
         <article v-for="o in orders" :key="o.id" class="order-card" @click="goDetail(o)">
           <header class="card-head">
-            <span class="time">{{ formatDateTime(o.orderTime) }}</span>
+            <span class="time">{{ timeText(o.orderTime) }}</span>
             <span :class="['status', 'status-' + o.status]">{{ orderStatusText(o.status) }}</span>
           </header>
 
@@ -58,7 +62,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
 import { orderApi } from '../api/user'
-import { formatDateTime, money, orderStatusText, orderSummaryText, tidyAddress } from '../utils/format'
+import { formatDateTime, money, orderStatusText, orderSummaryText, tidyAddress, timeText } from '../utils/format'
 
 const router = useRouter()
 const route = useRoute()
@@ -75,6 +79,7 @@ const active = ref(initialStatus)
 const orders = ref([])
 const loading = ref(false)
 const refreshing = ref(false)
+const failed = ref(false)
 
 // 从个人中心的“待付款 / 进行中 / 已完成”进入时，直接定位到对应筛选
 watch(
@@ -94,6 +99,7 @@ function hasAction(o) {
 
 async function load() {
   loading.value = !refreshing.value
+  failed.value = false
   try {
     const page = await orderApi.history({
       page: 1,
@@ -102,7 +108,8 @@ async function load() {
     })
     orders.value = (page && page.records) || []
   } catch (e) {
-    showToast(e.message || '加载失败')
+    failed.value = true
+    if (refreshing.value) showToast(e.message || '加载失败')
   } finally {
     loading.value = false
     refreshing.value = false

@@ -18,7 +18,7 @@
     <template v-else>
       <div class="tip">
         <van-icon name="clock-o" />
-        <span>下单后约 15 分钟出餐，请按取餐号在前台取餐</span>
+        <span>下单后约 15 分钟出餐，出餐后由食堂配送至下单地址</span>
       </div>
 
       <div class="list">
@@ -72,7 +72,7 @@
         class="bar"
         @submit="goConfirm"
       >
-        <template #tip>到店出示订单号即可取餐</template>
+        <template #tip>配送至校内地址，请保持电话畅通</template>
       </van-submit-bar>
     </template>
   </div>

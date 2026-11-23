@@ -71,6 +71,28 @@ export function formatDateTime(value) {
   return String(value).replace('T', ' ').slice(0, 19)
 }
 
+/** 订单列表用的相对时间：今天 18:28 / 昨天 12:10 / 11-07 18:05（今年）/ 2025-11-07 18:05 */
+export function timeText(value) {
+  if (!value) return '-'
+  const text = String(value).replace('T', ' ')
+  const d = new Date(text.replace(/-/g, '/'))
+  if (Number.isNaN(d.getTime())) return text.slice(0, 16)
+  const pad = (n) => String(n).padStart(2, '0')
+  const now = new Date()
+  const hm = pad(d.getHours()) + ':' + pad(d.getMinutes())
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const diffDays = Math.round((startOfToday - startOfDay) / 86400000)
+  if (diffDays === 0) return '今天 ' + hm
+  if (diffDays === 1) return '昨天 ' + hm
+  if (diffDays > 1 && diffDays < 7) {
+    return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()] + ' ' + hm
+  }
+  const md = pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+  if (d.getFullYear() === now.getFullYear()) return md + ' ' + hm
+  return d.getFullYear() + '-' + md + ' ' + hm
+}
+
 // 订单卡片摘要：orderDishes 形如 "宫保鸡丁*2;番茄炒蛋*1;"
 export function orderSummaryText(order) {
   if (!order) return ''
