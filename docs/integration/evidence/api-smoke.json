@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:8080",
-  "startedAt": "2026-11-09T10:34:07.499Z",
+  "startedAt": "2026-11-23T05:43:52.426Z",
   "steps": [
     {
       "group": "认证",
@@ -34,7 +34,7 @@
       "name": "GET /user/category/list?type=1",
       "ok": true,
       "detail": {
-        "count": 1
+        "count": 3
       }
     },
     {
@@ -50,8 +50,8 @@
       "name": "GET /user/dish/list",
       "ok": true,
       "detail": {
-        "count": 2,
-        "first": "宫保鸡丁",
+        "count": 4,
+        "first": "清炒时蔬",
         "hasFlavors": true
       }
     },
@@ -68,7 +68,7 @@
       "name": "GET /user/setmeal/list",
       "ok": true,
       "detail": {
-        "count": 1
+        "count": 2
       }
     },
     {
@@ -93,8 +93,8 @@
       "ok": true,
       "detail": {
         "count": 1,
-        "number": 2,
-        "amount": 18
+        "number": 1,
+        "amount": 10
       }
     },
     {
@@ -108,9 +108,9 @@
       "ok": true,
       "detail": {
         "number": 2,
-        "unitPrice": 18,
-        "subtotal": 36,
-        "expect": 36
+        "unitPrice": 10,
+        "subtotal": 20,
+        "expect": 20
       }
     },
     {
@@ -128,7 +128,7 @@
       "name": "GET /user/addressBook/list",
       "ok": true,
       "detail": {
-        "count": 2
+        "count": 3
       }
     },
     {
@@ -136,7 +136,7 @@
       "name": "PUT /user/addressBook/default",
       "ok": true,
       "detail": {
-        "id": 24
+        "id": 26
       }
     },
     {
@@ -144,9 +144,9 @@
       "name": "POST /user/order/submit（客户端金额 0.01 不予采信）",
       "ok": true,
       "detail": {
-        "orderId": 85,
-        "orderNumber": "c83fff9a5ebe41dfab48f3888698fa34",
-        "orderAmount": 36
+        "orderId": 97,
+        "orderNumber": "e296ec52e9b140a79f4de2ef76b5591a",
+        "orderAmount": 20
       }
     },
     {
@@ -154,9 +154,9 @@
       "name": "后端重算金额 ≠ 客户端金额",
       "ok": true,
       "detail": {
-        "backend": 36,
+        "backend": 20,
         "client": 0.01,
-        "expect": 36
+        "expect": 20
       }
     },
     {
@@ -172,7 +172,7 @@
       "name": "PUT /user/order/payment（模拟支付）",
       "ok": true,
       "detail": {
-        "packageStr": "SIMULATED:c83fff9a5ebe41dfab48f3888698fa34"
+        "packageStr": "SIMULATED:e296ec52e9b140a79f4de2ef76b5591a"
       }
     },
     {
@@ -182,7 +182,7 @@
       "detail": {
         "http": 200,
         "code": 1,
-        "packageStr": "SIMULATED:c83fff9a5ebe41dfab48f3888698fa34"
+        "packageStr": "SIMULATED:e296ec52e9b140a79f4de2ef76b5591a"
       }
     },
     {
@@ -190,7 +190,7 @@
       "name": "GET /user/order/historyOrders",
       "ok": true,
       "detail": {
-        "total": 6,
+        "total": 8,
         "records": 5
       }
     },
@@ -227,7 +227,7 @@
       "name": "GET /admin/order/conditionSearch 查到刚下的订单",
       "ok": true,
       "detail": {
-        "total": 7,
+        "total": 9,
         "status": 2
       }
     },
@@ -264,7 +264,7 @@
       "ok": true,
       "detail": {
         "status": 5,
-        "deliveryTime": "2026-11-09 18:34:08"
+        "deliveryTime": "2026-11-23 13:43:53"
       }
     },
     {
@@ -272,10 +272,10 @@
       "name": "GET /admin/workspace/businessData",
       "ok": true,
       "detail": {
-        "turnover": 48,
-        "validOrderCount": 2,
-        "orderCompletionRate": 0.6667,
-        "unitPrice": 24,
+        "turnover": 20,
+        "validOrderCount": 1,
+        "orderCompletionRate": 1,
+        "unitPrice": 20,
         "newUsers": 0
       }
     },
@@ -284,8 +284,8 @@
       "name": "GET /admin/report/turnoverStatistics",
       "ok": true,
       "detail": {
-        "dateList": "2026-11-09",
-        "turnoverList": "48.00"
+        "dateList": "2026-11-23",
+        "turnoverList": "20.00"
       }
     },
     {
@@ -303,7 +303,7 @@
       "name": "GET /admin/dish/page",
       "ok": true,
       "detail": {
-        "total": 2
+        "total": 8
       }
     },
     {
@@ -311,8 +311,8 @@
       "name": "GET /admin/dish/{id}（含口味）",
       "ok": true,
       "detail": {
-        "name": "宫保鸡丁",
-        "flavors": 1
+        "name": "清炒时蔬",
+        "flavors": 0
       }
     },
     {
@@ -332,7 +332,7 @@
       }
     }
   ],
-  "finishedAt": "2026-11-09T10:34:07.908Z",
+  "finishedAt": "2026-11-23T05:43:53.439Z",
   "summary": {
     "total": 37,
     "pass": 37,

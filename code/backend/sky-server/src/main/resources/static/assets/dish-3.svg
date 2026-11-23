@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd9c2"/>
+      <stop offset="1" stop-color="#e07a4a"/>
+    </linearGradient>
+    <radialGradient id="plate" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.78" stop-color="#fdfbf6"/>
+      <stop offset="1" stop-color="#f0eade"/>
+    </radialGradient>
+    <radialGradient id="bowl" cx="0.5" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eee7db"/>
+    </radialGradient>
+    <linearGradient id="food" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b5652e"/>
+      <stop offset="1" stop-color="#7d3f1c"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="300" fill="url(#bg)"/>
+  <g stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.5">
+    <path d="M214 92c-10-12 10-20 0-32"/>
+    <path d="M244 84c-10-12 10-20 0-32"/>
+    <path d="M272 92c-10-12 10-20 0-32"/>
+  </g>
+  <ellipse cx="240" cy="182" rx="150" ry="86" fill="rgba(120,70,20,0.12)"/>
+  <ellipse cx="240" cy="176" rx="148" ry="84" fill="url(#plate)"/>
+  <ellipse cx="240" cy="176" rx="118" ry="64" fill="none" stroke="#efe6d6" stroke-width="3"/>
+  <g>
+    <g transform="rotate(-6 202.0 160.0)"><rect x="176" y="138" width="52" height="44" rx="9" fill="#8d4a22"/><rect x="178" y="140" width="48" height="17" rx="7" fill="#b5652e" opacity="0.55"/></g>
+    <g transform="rotate(4 260.0 155.0)"><rect x="232" y="132" width="56" height="46" rx="9" fill="#7d3f1c"/><rect x="234" y="134" width="52" height="18" rx="7" fill="#a95c2a" opacity="0.55"/></g>
+    <g transform="rotate(3 223.0 202.0)"><rect x="196" y="180" width="54" height="44" rx="9" fill="#8a4620"/><rect x="198" y="182" width="50" height="17" rx="7" fill="#b06030" opacity="0.55"/></g>
+    <g transform="rotate(-4 278.0 199.0)"><rect x="252" y="178" width="52" height="42" rx="9" fill="#7f411d"/><rect x="254" y="180" width="48" height="16" rx="7" fill="#a85a28" opacity="0.55"/></g>
+  </g>
+  <g fill="#4f9e3f">
+    <rect x="168" y="164" width="30" height="8" rx="4" transform="rotate(-18 183 168)"/>
+    <rect x="290" y="150" width="28" height="8" rx="4" transform="rotate(12 304 154)"/>
+  </g>
+  <g fill="#f6e7c8">
+    <circle cx="222" cy="126" r="5"/>
+    <circle cx="272" cy="128" r="4"/>
+    <circle cx="240" cy="206" r="4.5"/>
+  </g>
+  <g stroke="#8a5a2b" stroke-width="7" stroke-linecap="round">
+    <line x1="392" y1="86" x2="452" y2="40"/>
+    <line x1="404" y1="100" x2="464" y2="54"/>
+  </g>
+</svg>

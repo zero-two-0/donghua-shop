@@ -23,7 +23,7 @@
     "h5-06-home-320.png",
     "h5-07-cart-320.png"
   ],
-  "finishedAt": "2026-11-09T10:35:21.873Z",
+  "finishedAt": "2026-11-23T05:45:06.666Z",
   "steps": [
     {
       "name": "点击身份与登录按钮后跳转首页并保存令牌",
@@ -48,8 +48,8 @@
       "name": "购物车点击“+”后数量 +1（服务端为准）",
       "ok": true,
       "detail": {
-        "numBefore": 2,
-        "numAfter": 3
+        "numBefore": 1,
+        "numAfter": 2
       }
     },
     {
@@ -71,15 +71,15 @@
       "ok": true,
       "detail": {
         "payClick": "clicked",
-        "hash": "#/orders/88"
+        "hash": "#/orders/100"
       }
     },
     {
       "name": "详情页可读出订单号（供管理端按行定位）",
       "ok": true,
       "detail": {
-        "orderId": "88",
-        "orderNumber": "5c47c3ca36934fa784b50f62f8f6f1b8"
+        "orderId": "100",
+        "orderNumber": "0c8fbdbcaaf64b6499635bfd2f7a1cbd"
       }
     },
     {
@@ -93,7 +93,7 @@
       "name": "订单管理列表能按订单号定位到该订单",
       "ok": true,
       "detail": {
-        "orderNumber": "5c47c3ca36934fa784b50f62f8f6f1b8"
+        "orderNumber": "0c8fbdbcaaf64b6499635bfd2f7a1cbd"
       }
     },
     {
@@ -115,7 +115,7 @@
       "ok": true,
       "detail": {
         "complete": "clicked",
-        "orderId": "88",
+        "orderId": "100",
         "status": 5
       }
     },

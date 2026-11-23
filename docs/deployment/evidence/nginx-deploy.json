@@ -2,21 +2,21 @@
   "mode": "Nginx 静态托管 + 接口反代（Windows）",
   "userBase": "http://127.0.0.1:8081",
   "adminBase": "http://127.0.0.1:8082",
-  "finishedAt": "2026-11-09T10:34:10.516Z",
+  "finishedAt": "2026-11-23T05:43:55.918Z",
   "steps": [
     {
       "name": "用户端首页返回 index.html",
       "ok": true,
       "detail": {
         "status": 200,
-        "bytes": 505
+        "bytes": 570
       }
     },
     {
       "name": "用户端入口 JS 可访问且 MIME 正确",
       "ok": true,
       "detail": {
-        "entry": "/assets/index-CgE1lisU.js",
+        "entry": "/assets/index-c-YrqH4y.js",
         "status": 200,
         "kb": 380
       }
@@ -27,7 +27,7 @@
       "detail": {
         "status": 200,
         "code": 1,
-        "count": 1
+        "count": 3
       }
     },
     {
@@ -72,8 +72,8 @@
       "name": "管理端入口 JS 可访问",
       "ok": true,
       "detail": {
-        "entry": "/assets/index-Bfq9oBnk.js",
-        "kb": 9
+        "entry": "/assets/index-Cd8deVZD.js",
+        "kb": 10
       }
     },
     {

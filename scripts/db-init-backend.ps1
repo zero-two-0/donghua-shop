@@ -1,4 +1,4 @@
-# 按组长第 2 周 schema.sql 初始化课程库 takeout_course（可重复执行：会重建该库，不动其他库）
+﻿# 按组长第 2 周 schema.sql 初始化课程库 takeout_course（可重复执行：会重建该库，不动其他库）
 # 前置：config\env.local.ps1 中配置 DH_DB_ROOT_PASSWORD
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -43,6 +43,53 @@ UPDATE user SET name = '林书瑶' WHERE id = 2;
 UPDATE employee SET name = '张明' WHERE username = 'admin';
 "@
 Invoke-Sql $demoCopy '更新演示数据文案（菜品/套餐/分类/用户/员工）'
+
+# 菜单扩充：组长 schema 只带 3 个菜品、2 个分类、1 个套餐，首页会显得空。
+# 这里补齐 3 类菜品（热菜/主食/汤品）+ 8 个菜品 + 2 个套餐，插图对应 static/assets/dish-*.svg。
+# 全部按主键/唯一键 upsert，可重复执行；重建库后菜单不会退回 3 个菜。
+$menuSeed = @"
+USE ``$dbName``;
+INSERT INTO category (type, name, sort, status) VALUES
+  (1, '热菜', 1, 1), (1, '主食', 2, 1), (1, '汤品', 3, 1), (2, '套餐', 1, 1)
+ON DUPLICATE KEY UPDATE sort = VALUES(sort), status = VALUES(status);
+
+INSERT INTO dish (id, name, category_id, price, image, description, status) VALUES
+  (1, '宫保鸡丁', 1, 18.00, '/assets/dish-1.svg', '鸡丁配花生与干辣椒同炒，咸甜微辣，很下饭。', 1),
+  (2, '番茄炒蛋', 1, 12.00, '/assets/dish-2.svg', '番茄与嫩滑蛋块同炒，酸甜开胃。', 1),
+  (3, '红烧肉', 1, 22.00, '/assets/dish-3.svg', '五花肉小火慢炖收汁，肥而不腻，配米饭很香。', 1),
+  (4, '清炒时蔬', 1, 10.00, '/assets/dish-4.svg', '当季青菜大火快炒，少油少盐。', 1),
+  (5, '番茄鸡蛋面', 1, 16.00, '/assets/dish-5.svg', '手擀面配番茄蛋花浇头，汤头清亮。', 1),
+  (6, '咖喱鸡饭', 1, 20.00, '/assets/dish-6.svg', '鸡腿肉与土豆胡萝卜同炖，咖喱浓郁。', 1),
+  (7, '鲜肉小笼包', 1, 14.00, '/assets/dish-8.svg', '现包现蒸，皮薄馅足，一笼六只。', 1),
+  (8, '紫菜蛋花汤', 1, 6.00, '/assets/dish-7.svg', '紫菜与蛋花同煮，清爽解腻。', 1)
+ON DUPLICATE KEY UPDATE
+  name = VALUES(name), category_id = VALUES(category_id), price = VALUES(price),
+  image = VALUES(image), description = VALUES(description), status = VALUES(status);
+
+UPDATE dish d JOIN category c ON c.name = '主食' AND c.type = 1 SET d.category_id = c.id
+ WHERE d.name IN ('番茄鸡蛋面', '咖喱鸡饭', '鲜肉小笼包');
+UPDATE dish d JOIN category c ON c.name = '汤品' AND c.type = 1 SET d.category_id = c.id
+ WHERE d.name = '紫菜蛋花汤';
+
+DELETE FROM dish_flavor WHERE dish_id IN (1, 3, 6);
+INSERT INTO dish_flavor (dish_id, name, value) VALUES
+  (1, '辣度', '[""不辣"",""微辣"",""中辣""]'),
+  (3, '辣度', '[""不辣"",""微辣""]'),
+  (6, '辣度', '[""微辣"",""中辣""]');
+
+INSERT INTO setmeal (id, category_id, name, price, status, description, image) VALUES
+  (1, 2, '双人套餐', 28.00, 1, '宫保鸡丁 + 番茄炒蛋，配两份米饭与例汤。', '/assets/setmeal-1.svg'),
+  (2, 2, '单人套餐', 18.00, 1, '红烧肉 + 清炒时蔬，配米饭与例汤。', '/assets/setmeal-2.svg')
+ON DUPLICATE KEY UPDATE
+  category_id = VALUES(category_id), name = VALUES(name), price = VALUES(price),
+  status = VALUES(status), description = VALUES(description), image = VALUES(image);
+
+DELETE FROM setmeal_dish WHERE setmeal_id IN (1, 2);
+INSERT INTO setmeal_dish (setmeal_id, dish_id, name, price, copies) VALUES
+  (1, 1, '宫保鸡丁', 18.00, 1), (1, 2, '番茄炒蛋', 12.00, 1),
+  (2, 3, '红烧肉', 22.00, 1), (2, 4, '清炒时蔬', 10.00, 1);
+"@
+Invoke-Sql $menuSeed '扩充演示菜单（分类/菜品/口味/套餐）'
 
 $grant = @"
 CREATE USER IF NOT EXISTS '$appUser'@'localhost' IDENTIFIED BY '$appPwd';

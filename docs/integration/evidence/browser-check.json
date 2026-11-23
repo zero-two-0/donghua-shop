@@ -23,7 +23,7 @@
     "h5-06-home-320.png",
     "h5-07-cart-320.png"
   ],
-  "finishedAt": "2026-11-09T10:36:09.382Z",
+  "finishedAt": "2026-11-23T05:46:03.445Z",
   "steps": [
     {
       "name": "用户端登录页渲染（含账号选择）",
@@ -36,28 +36,28 @@
       "name": "用户端首页渲染真实菜品",
       "ok": true,
       "detail": {
-        "chars": 124
+        "chars": 197
       }
     },
     {
       "name": "购物车页显示商品与合计",
       "ok": true,
       "detail": {
-        "chars": 113
+        "chars": 120
       }
     },
     {
       "name": "订单列表页渲染（状态标签或空态）",
       "ok": true,
       "detail": {
-        "chars": 414
+        "chars": 823
       }
     },
     {
       "name": "地址页渲染（新增按钮可见）",
       "ok": true,
       "detail": {
-        "chars": 112
+        "chars": 164
       }
     },
     {
@@ -117,14 +117,14 @@
       "name": "管理端订单管理渲染（含状态标签）",
       "ok": true,
       "detail": {
-        "chars": 870
+        "chars": 1356
       }
     },
     {
       "name": "管理端菜品管理渲染（含宫保鸡丁）",
       "ok": true,
       "detail": {
-        "chars": 275
+        "chars": 630
       }
     }
   ],
